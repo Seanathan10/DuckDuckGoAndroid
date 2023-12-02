@@ -22,6 +22,7 @@ import android.view.MenuItem
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -38,13 +39,19 @@ import com.duckduckgo.js.messaging.api.JsMessageCallback
 import com.duckduckgo.js.messaging.api.JsMessaging
 import com.duckduckgo.js.messaging.api.SubscriptionEventData
 import com.duckduckgo.navigation.api.GlobalActivityStarter
+import com.duckduckgo.navigation.api.GlobalActivityStarter.ActivityParams
 import com.duckduckgo.navigation.api.getActivityParams
 import com.duckduckgo.subscriptions.impl.R.string
 import com.duckduckgo.subscriptions.impl.databinding.ActivitySubscriptionsWebviewBinding
 import com.duckduckgo.subscriptions.impl.ui.AddDeviceActivity.Companion.AddDeviceScreenWithEmptyParams
+import com.duckduckgo.subscriptions.impl.ui.RestoreSubscriptionActivity.Companion.RestoreSubscriptionScreenWithEmptyParams
 import com.duckduckgo.subscriptions.impl.ui.SubscriptionWebViewViewModel.Command
 import com.duckduckgo.subscriptions.impl.ui.SubscriptionWebViewViewModel.Command.ActivateOnAnotherDevice
 import com.duckduckgo.subscriptions.impl.ui.SubscriptionWebViewViewModel.Command.BackToSettings
+import com.duckduckgo.subscriptions.impl.ui.SubscriptionWebViewViewModel.Command.GoToITR
+import com.duckduckgo.subscriptions.impl.ui.SubscriptionWebViewViewModel.Command.GoToNetP
+import com.duckduckgo.subscriptions.impl.ui.SubscriptionWebViewViewModel.Command.GoToPIR
+import com.duckduckgo.subscriptions.impl.ui.SubscriptionWebViewViewModel.Command.RestoreSubscription
 import com.duckduckgo.subscriptions.impl.ui.SubscriptionWebViewViewModel.Command.SendResponseToJs
 import com.duckduckgo.subscriptions.impl.ui.SubscriptionWebViewViewModel.Command.SubscriptionSelected
 import com.duckduckgo.subscriptions.impl.ui.SubscriptionWebViewViewModel.PurchaseStateView
@@ -59,7 +66,7 @@ import org.json.JSONObject
 data class SubscriptionsWebViewActivityWithParams(
     val url: String,
     val screenTitle: String,
-) : GlobalActivityStarter.ActivityParams
+) : ActivityParams
 
 @InjectWith(ActivityScope::class)
 @ContributeToActivityStarter(SubscriptionsWebViewActivityWithParams::class)
@@ -141,7 +148,23 @@ class SubscriptionsWebViewActivity : DuckDuckGoActivity() {
             is SendResponseToJs -> sendResponseToJs(command.data)
             is SubscriptionSelected -> selectSubscription(command.id)
             is ActivateOnAnotherDevice -> activateOnAnotherDevice()
+            is RestoreSubscription -> restoreSubscription()
+            is GoToITR -> goToITR()
+            is GoToPIR -> goToPIR()
+            is GoToNetP -> goToNetP(command.activityParams)
         }
+    }
+
+    private fun goToITR() {
+        Toast.makeText(this, "Go To ITR", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun goToPIR() {
+        Toast.makeText(this, "Go To PIR", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun goToNetP(params: ActivityParams) {
+        globalActivityStarter.start(this, params)
     }
 
     private fun renderPurchaseState(purchaseState: PurchaseStateView) {
@@ -232,6 +255,10 @@ class SubscriptionsWebViewActivity : DuckDuckGoActivity() {
 
     private fun activateOnAnotherDevice() {
         globalActivityStarter.start(this, AddDeviceScreenWithEmptyParams)
+    }
+
+    private fun restoreSubscription() {
+        globalActivityStarter.start(this, RestoreSubscriptionScreenWithEmptyParams)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
