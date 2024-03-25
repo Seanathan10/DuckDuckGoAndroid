@@ -16,9 +16,8 @@
 
 package com.duckduckgo.autofill.impl.ui.credential.saving.declines
 
-import com.duckduckgo.autofill.api.store.AutofillStore
+import com.duckduckgo.autofill.impl.store.InternalAutofillStore
 import com.duckduckgo.common.test.CoroutineTestRule
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -35,13 +34,12 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-@ExperimentalCoroutinesApi
 class AutofillDisablingDeclineCounterTest {
 
     @get:Rule
     val coroutineTestRule: CoroutineTestRule = CoroutineTestRule()
 
-    private val autofillStore: AutofillStore = mock()
+    private val autofillStore: InternalAutofillStore = mock()
     private lateinit var testee: AutofillDisablingDeclineCounter
 
     @Before
@@ -126,7 +124,7 @@ class AutofillDisablingDeclineCounterTest {
     @Test
     fun whenCounterNotActiveThenShouldNeverPromptToDisableAutofill() = runTest {
         initialiseDeclineCounter()
-        testee.disableDeclineCounter()
+        testee.isActive = false
         configureGlobalDeclineCountAtThreshold()
         assertFalse(testee.shouldPromptToDisableAutofill())
     }
@@ -135,13 +133,14 @@ class AutofillDisablingDeclineCounterTest {
     fun whenAutofillNotAvailableThenCounterNotActive() = runTest {
         whenever(autofillStore.autofillAvailable).thenReturn(false)
         initialiseDeclineCounter()
-        assertFalse(testee.isActive())
+        assertFalse(testee.isActive)
     }
 
     @Test
-    fun whenAutofillAvailableThenCounterStartsAsActive() = runTest {
+    fun whenAutofillNotEnabledThenCounterNotActive() = runTest {
+        whenever(autofillStore.autofillEnabled).thenReturn(false)
         initialiseDeclineCounter()
-        assertTrue(testee.isActive())
+        assertFalse(testee.isActive)
     }
 
     private fun configureGlobalDeclineCountAtThreshold() {

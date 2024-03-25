@@ -19,17 +19,21 @@ package com.duckduckgo.app.browser
 import android.graphics.Bitmap
 import android.net.Uri
 import android.net.http.SslError
-import android.net.http.SslError.*
-import android.os.Build
-import android.webkit.*
-import androidx.annotation.RequiresApi
+import android.net.http.SslError.SSL_UNTRUSTED
+import android.webkit.HttpAuthHandler
+import android.webkit.RenderProcessGoneDetail
+import android.webkit.SslErrorHandler
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.annotation.StringRes
 import androidx.annotation.UiThread
 import androidx.annotation.WorkerThread
 import androidx.core.net.toUri
 import com.duckduckgo.adclick.api.AdClickManager
 import com.duckduckgo.anrs.api.CrashLogger
-import com.duckduckgo.app.accessibility.AccessibilityManager
 import com.duckduckgo.app.browser.WebViewErrorResponse.BAD_URL
 import com.duckduckgo.app.browser.WebViewErrorResponse.CONNECTION
 import com.duckduckgo.app.browser.WebViewErrorResponse.OMITTED
@@ -41,8 +45,11 @@ import com.duckduckgo.app.browser.cookies.ThirdPartyCookieManager
 import com.duckduckgo.app.browser.httpauth.WebViewHttpAuthStore
 import com.duckduckgo.app.browser.logindetection.DOMLoginDetector
 import com.duckduckgo.app.browser.logindetection.WebNavigationEvent
+import com.duckduckgo.app.browser.mediaplayback.MediaPlayback
 import com.duckduckgo.app.browser.model.BasicAuthenticationRequest
 import com.duckduckgo.app.browser.navigation.safeCopyBackForwardList
+import com.duckduckgo.app.browser.pageloadpixel.PageLoadedHandler
+import com.duckduckgo.app.browser.pageloadpixel.firstpaint.PagePaintedHandler
 import com.duckduckgo.app.browser.print.PrintInjector
 import com.duckduckgo.app.di.AppCoroutineScope
 import com.duckduckgo.app.statistics.pixels.Pixel
@@ -50,14 +57,18 @@ import com.duckduckgo.autoconsent.api.Autoconsent
 import com.duckduckgo.autofill.api.BrowserAutofill
 import com.duckduckgo.autofill.api.InternalTestUserChecker
 import com.duckduckgo.browser.api.JsInjectorPlugin
+import com.duckduckgo.common.utils.CurrentTimeProvider
 import com.duckduckgo.common.utils.DispatcherProvider
 import com.duckduckgo.common.utils.plugins.PluginPoint
 import com.duckduckgo.cookies.api.CookieManagerProvider
 import com.duckduckgo.privacy.config.api.AmpLinks
+import com.duckduckgo.user.agent.api.ClientBrandHintProvider
 import java.net.URI
 import javax.inject.Inject
 import kotlinx.coroutines.*
 import timber.log.Timber
+
+private const val ABOUT_BLANK = "about:blank"
 
 class BrowserWebViewClient @Inject constructor(
     private val webViewHttpAuthStore: WebViewHttpAuthStore,
@@ -72,7 +83,6 @@ class BrowserWebViewClient @Inject constructor(
     @AppCoroutineScope private val appCoroutineScope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider,
     private val browserAutofillConfigurator: BrowserAutofill.Configurator,
-    private val accessibilityManager: AccessibilityManager,
     private val ampLinks: AmpLinks,
     private val printInjector: PrintInjector,
     private val internalTestUserChecker: InternalTestUserChecker,
@@ -81,33 +91,26 @@ class BrowserWebViewClient @Inject constructor(
     private val pixel: Pixel,
     private val crashLogger: CrashLogger,
     private val jsPlugins: PluginPoint<JsInjectorPlugin>,
+    private val currentTimeProvider: CurrentTimeProvider,
+    private val shouldSendPageLoadedPixel: PageLoadedHandler,
+    private val shouldSendPagePaintedPixel: PagePaintedHandler,
+    private val mediaPlayback: MediaPlayback,
 ) : WebViewClient() {
 
     var webViewClientListener: WebViewClientListener? = null
+    var clientProvider: ClientBrandHintProvider? = null
     private var lastPageStarted: String? = null
+    private var start: Long? = null
 
     /**
-     * This is the new method of url overriding available from API 24 onwards
+     * This is the method of url overriding available from API 24 onwards
      */
-    @RequiresApi(Build.VERSION_CODES.N)
     override fun shouldOverrideUrlLoading(
         view: WebView,
         request: WebResourceRequest,
     ): Boolean {
         val url = request.url
         return shouldOverride(view, url, request.isForMainFrame)
-    }
-
-    /**
-     * * This is the old, deprecated method of url overriding available until API 23
-     */
-    @Suppress("OverridingDeprecatedMember")
-    override fun shouldOverrideUrlLoading(
-        view: WebView,
-        urlString: String,
-    ): Boolean {
-        val url = Uri.parse(urlString)
-        return shouldOverride(view, url, isForMainFrame = true)
     }
 
     /**
@@ -171,12 +174,26 @@ class BrowserWebViewClient @Inject constructor(
                 is SpecialUrlDetector.UrlType.SearchQuery -> false
                 is SpecialUrlDetector.UrlType.Web -> {
                     if (requestRewriter.shouldRewriteRequest(url)) {
-                        val newUri = requestRewriter.rewriteRequestWithCustomQueryParams(url)
-                        webView.loadUrl(newUri.toString())
-                        return true
+                        webViewClientListener?.let { listener ->
+                            val newUri = requestRewriter.rewriteRequestWithCustomQueryParams(url)
+                            loadUrl(listener, webView, newUri.toString())
+                            return true
+                        }
                     }
                     if (isForMainFrame) {
-                        webViewClientListener?.willOverrideUrl(url.toString())
+                        webViewClientListener?.let { listener ->
+                            listener.willOverrideUrl(url.toString())
+                            clientProvider?.let { provider ->
+                                if (provider.shouldChangeBranding(url.toString())) {
+                                    provider.setOn(webView.settings, url.toString())
+                                    loadUrl(listener, webView, url.toString())
+                                    return true
+                                } else {
+                                    return false
+                                }
+                            }
+                            return false
+                        }
                     }
                     false
                 }
@@ -264,6 +281,11 @@ class BrowserWebViewClient @Inject constructor(
         Timber.v("onPageStarted webViewUrl: ${webView.url} URL: $url")
 
         url?.let {
+            // See https://app.asana.com/0/0/1206159443951489/f (WebView limitations)
+            if (it != "about:blank" && start == null) {
+                start = currentTimeProvider.getTimeInMillis()
+            }
+            handleMediaPlayback(webView, it)
             autoconsent.injectAutoconsent(webView, url)
             adClickManager.detectAdDomain(url)
             requestInterceptor.onPageStarted(url)
@@ -284,32 +306,50 @@ class BrowserWebViewClient @Inject constructor(
         loginDetector.onEvent(WebNavigationEvent.OnPageStarted(webView))
     }
 
+    private fun handleMediaPlayback(webView: WebView, url: String) {
+        // The default value for this flag is `true`.
+        webView.settings.mediaPlaybackRequiresUserGesture = mediaPlayback.doesMediaPlaybackRequireUserGestureForUrl(url)
+    }
+
     @UiThread
     override fun onPageFinished(
         webView: WebView,
         url: String?,
     ) {
-        jsPlugins.getPlugins().forEach {
-            it.onPageFinished(webView, url, webViewClientListener?.getSite())
+        Timber.v("onPageFinished webViewUrl: ${webView.url} URL: $url progress: ${webView.progress}")
+        if (webView.progress == 100) {
+            jsPlugins.getPlugins().forEach {
+                it.onPageFinished(webView, url, webViewClientListener?.getSite())
+            }
+            url?.let {
+                // We call this for any url but it will only be processed for an internal tester verification url
+                internalTestUserChecker.verifyVerificationCompleted(it)
+            }
+            val navigationList = webView.safeCopyBackForwardList() ?: return
+            webViewClientListener?.run {
+                navigationStateChanged(WebViewNavigationState(navigationList))
+                url?.let { prefetchFavicon(url) }
+            }
+            flushCookies()
+            printInjector.injectPrint(webView)
+
+            url?.let {
+                start?.let { safeStart ->
+                    val progress = webView.progress
+                    // See https://app.asana.com/0/0/1206159443951489/f (WebView limitations)
+                    if (url != ABOUT_BLANK) {
+                        shouldSendPageLoadedPixel(it, safeStart, currentTimeProvider.getTimeInMillis())
+                        shouldSendPagePaintedPixel(webView = webView, url = it)
+                        start = null
+                    }
+                }
+            }
         }
-        accessibilityManager.onPageFinished(webView, url)
-        url?.let {
-            // We call this for any url but it will only be processed for an internal tester verification url
-            internalTestUserChecker.verifyVerificationCompleted(it)
-        }
-        Timber.v("onPageFinished webViewUrl: ${webView.url} URL: $url")
-        val navigationList = webView.safeCopyBackForwardList() ?: return
-        webViewClientListener?.run {
-            navigationStateChanged(WebViewNavigationState(navigationList))
-            url?.let { prefetchFavicon(url) }
-        }
-        flushCookies()
-        printInjector.injectPrint(webView)
     }
 
     private fun flushCookies() {
         appCoroutineScope.launch(dispatcherProvider.io()) {
-            cookieManagerProvider.get().flush()
+            cookieManagerProvider.get()?.flush()
         }
     }
 
@@ -324,11 +364,10 @@ class BrowserWebViewClient @Inject constructor(
                 loginDetector.onEvent(WebNavigationEvent.ShouldInterceptRequest(webView, request))
             }
             Timber.v("Intercepting resource ${request.url} type:${request.method} on page $documentUrl")
-            requestInterceptor.shouldIntercept(request, webView, documentUrl, webViewClientListener)
+            requestInterceptor.shouldIntercept(request, webView, documentUrl?.toUri(), webViewClientListener)
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onRenderProcessGone(
         view: WebView?,
         detail: RenderProcessGoneDetail?,
@@ -420,6 +459,7 @@ class BrowserWebViewClient @Inject constructor(
         error?.let {
             val parsedError = parseErrorResponse(it)
             if (parsedError != OMITTED && request?.isForMainFrame == true) {
+                start = null
                 webViewClientListener?.onReceivedError(parsedError, request.url.toString())
             }
             if (request?.isForMainFrame == true) {
@@ -496,11 +536,14 @@ class BrowserWebViewClient @Inject constructor(
 enum class WebViewPixelName(override val pixelName: String) : Pixel.PixelName {
     WEB_RENDERER_GONE_CRASH("m_web_view_renderer_gone_crash"),
     WEB_RENDERER_GONE_KILLED("m_web_view_renderer_gone_killed"),
+    WEB_PAGE_LOADED("m_web_view_page_loaded"),
+    WEB_PAGE_PAINTED("m_web_view_page_painted"),
 }
 
 enum class WebViewErrorResponse(@StringRes val errorId: Int) {
     BAD_URL(R.string.webViewErrorBadUrl),
     CONNECTION(R.string.webViewErrorNoConnection),
     OMITTED(R.string.webViewErrorNoConnection),
+    LOADING(R.string.webViewErrorNoConnection),
     SSL_PROTOCOL_ERROR(R.string.webViewErrorSslProtocol),
 }

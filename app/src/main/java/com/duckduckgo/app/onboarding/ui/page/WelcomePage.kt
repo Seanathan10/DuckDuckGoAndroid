@@ -77,7 +77,7 @@ class WelcomePage : OnboardingPageFragment(R.layout.content_onboarding_welcome) 
     private val events = MutableSharedFlow<WelcomePageView.Event>(replay = 0, extraBufferCapacity = 1)
 
     private val welcomePageViewModel: WelcomePageViewModel by lazy {
-        ViewModelProvider(this, viewModelFactory).get(WelcomePageViewModel::class.java)
+        ViewModelProvider(this, viewModelFactory)[WelcomePageViewModel::class.java]
     }
 
     private val binding: ContentOnboardingWelcomeBinding by viewBinding()

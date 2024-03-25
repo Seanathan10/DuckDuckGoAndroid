@@ -46,14 +46,14 @@ interface RequestInterceptor {
     suspend fun shouldIntercept(
         request: WebResourceRequest,
         webView: WebView,
-        documentUrl: String?,
+        documentUri: Uri?,
         webViewClientListener: WebViewClientListener?,
     ): WebResourceResponse?
 
     @WorkerThread
     suspend fun shouldInterceptFromServiceWorker(
         request: WebResourceRequest?,
-        documentUrl: String?,
+        documentUrl: Uri?,
     ): WebResourceResponse?
 
     fun onPageStarted(url: String)
@@ -89,12 +89,12 @@ class WebViewRequestInterceptor(
     override suspend fun shouldIntercept(
         request: WebResourceRequest,
         webView: WebView,
-        documentUrl: String?,
+        documentUri: Uri?,
         webViewClientListener: WebViewClientListener?,
     ): WebResourceResponse? {
         val url = request.url
 
-        if (requestFilterer.shouldFilterOutRequest(request, documentUrl)) return WebResourceResponse(null, null, null)
+        if (requestFilterer.shouldFilterOutRequest(request, documentUri.toString())) return WebResourceResponse(null, null, null)
 
         adClickManager.detectAdClick(url?.toString(), request.isForMainFrame)
 
@@ -128,22 +128,22 @@ class WebViewRequestInterceptor(
             return WebResourceResponse(null, null, null)
         }
 
-        if (documentUrl == null) return null
+        if (documentUri == null) return null
 
-        if (TrustedSites.isTrusted(documentUrl)) {
+        if (TrustedSites.isTrusted(documentUri)) {
             return null
         }
 
         if (url != null && url.isHttp) {
-            webViewClientListener?.pageHasHttpResources(documentUrl)
+            webViewClientListener?.pageHasHttpResources(documentUri)
         }
 
-        return getWebResourceResponse(request, documentUrl, webViewClientListener)
+        return getWebResourceResponse(request, documentUri, webViewClientListener)
     }
 
     override suspend fun shouldInterceptFromServiceWorker(
         request: WebResourceRequest?,
-        documentUrl: String?,
+        documentUrl: Uri?,
     ): WebResourceResponse? {
         if (documentUrl == null) return null
         if (request == null) return null
@@ -157,7 +157,7 @@ class WebViewRequestInterceptor(
 
     private fun getWebResourceResponse(
         request: WebResourceRequest,
-        documentUrl: String?,
+        documentUrl: Uri,
         webViewClientListener: WebViewClientListener?,
     ): WebResourceResponse? {
         val trackingEvent = trackingEvent(request, documentUrl, webViewClientListener)
@@ -167,7 +167,7 @@ class WebViewRequestInterceptor(
             trackingEvent.status == TrackerStatus.ALLOWED ||
             trackingEvent.status == TrackerStatus.SAME_ENTITY_ALLOWED
         ) {
-            cloakedCnameDetector.detectCnameCloakedHost(documentUrl, request.url)?.let { uncloakedHost ->
+            cloakedCnameDetector.detectCnameCloakedHost(documentUrl.toString(), request.url)?.let { uncloakedHost ->
                 trackingEvent(request, documentUrl, webViewClientListener, false, uncloakedHost)?.let { cloakedTrackingEvent ->
                     if (cloakedTrackingEvent.status == TrackerStatus.BLOCKED) {
                         return blockRequest(cloakedTrackingEvent, request, webViewClientListener)
@@ -244,7 +244,23 @@ class WebViewRequestInterceptor(
 
     private fun trackingEvent(
         request: WebResourceRequest,
-        documentUrl: String?,
+        documentUrl: Uri?,
+        webViewClientListener: WebViewClientListener?,
+        checkFirstParty: Boolean = true,
+    ): TrackingEvent? {
+        val url = request.url
+        if (request.isForMainFrame || documentUrl == null) {
+            return null
+        }
+
+        val trackingEvent = trackerDetector.evaluate(url, documentUrl, checkFirstParty, request.requestHeaders) ?: return null
+        webViewClientListener?.trackerDetected(trackingEvent)
+        return trackingEvent
+    }
+
+    private fun trackingEvent(
+        request: WebResourceRequest,
+        documentUrl: Uri?,
         webViewClientListener: WebViewClientListener?,
         checkFirstParty: Boolean = true,
         url: String = request.url.toString(),

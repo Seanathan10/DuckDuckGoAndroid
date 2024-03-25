@@ -17,16 +17,11 @@
 <!-- smartling.entity_escaping = false -->
 <!-- smartling.instruction_attributes = instruction -->
 <resources>
-    <string name="autofillManagementScreenTitle">Anmeldungen</string>
-
     <string name="managementDisabledModeCta"><b>In den Einstellungen einrichten</b></string>
-    <string name="managementDisabledModeSubtitle">Es sind ein Entsperrmuster, eine PIN oder biometrische Daten erforderlich, um deine Anmeldedaten zu schützen.</string>
-    <string name="managementDisabledModeTitle">Sichere dein Gerät, um Anmeldungen zu speichern</string>
 
     <string name="saveLoginDialogButtonSave">Passwort speichern</string>
     <string name="saveLoginMissingUsernameDialogButtonSave">Passwort speichern</string>
     <string name="saveLoginDialogNotNow">Nicht speichern</string>
-    <string name="saveLoginDialogSubtitle">Passwörter werden sicher auf deinem Gerät im Anmeldedaten-Menü gespeichert.</string>
     <string name="saveLoginDialogTitle">Möchtest du, dass DuckDuckGo dein Passwort speichert?</string>
     <string name="saveLoginDialogMoreOptionsButtonLabel">Weitere Optionen</string>
 
@@ -47,47 +42,36 @@
 
     <string name="autofillDialogCloseButtonContentDescription">Autovervollständigen-Dialog schließen</string>
 
-    <string name="credentialManagementEditLoginTitleHint">Titel der Anmeldedaten</string>
     <string name="credentialManagementEditUsernameHint">Benutzername</string>
     <string name="credentialManagementEditPasswordHint">Passwort</string>
-    <string name="credentialManagementEditTitle">Anmeldedaten bearbeiten</string>
     <string name="credentialManagementEditWebsiteHint">URL der Website</string>
     <string name="credentialManagementEditNotesHint">Notizen</string>
     <string name="credentialManagementEditButtonDelete">Löschen</string>
     <string name="credentialManagementEditButtonSaveChanges">Änderungen speichern</string>
     <string name="credentialManagementEditButtonCopyUsername">Benutzername kopieren</string>
     <string name="credentialManagementEditButtonCopyPassword">Passwort kopieren</string>
-    <string name="credentialManagementEditLastUpdated" instruction="Placeholder is a date">Anmeldedaten zuletzt aktualisiert: %1$s</string>
 
-    <string name="credentialManagementAutofillToggleLabel">Anmeldedaten speichern und automatisch ausfüllen</string>
-    <string name="credentialManagementAutofillToggleSubtitle">Die Anmeldedaten werden sicher auf deinem Gerät gespeichert</string>
     <string name="credentialManagementViewMenuEdit">Bearbeiten</string>
     <string name="credentialManagementViewMenuDelete">Löschen</string>
 
     <string name="credentialManagementSuggestionsLabel">Vorgeschlagen</string>
-    <string name="credentialManagementNoLoginsSavedTitle">Noch keine Anmeldedaten gespeichert</string>
 
-    <string name="autofillManagementAddLogin">Anmeldedaten hinzufügen</string>
-    <string name="autofillManagementSearchLogins">Anmeldedaten suchen</string>
     <string name="autofillManagementSearchClearDescription">Sucheingabe löschen</string>
     <string name="autofillManagementNoSearchResults" instruction="Placeholder is the query the user has searched for. e.g., No results for &apos;kittens&apos;">Keine Ergebnisse für „%1$s“</string>
 
     <string name="autofillDeleteLoginDialogCancel">Abbrechen</string>
     <string name="autofillDeleteLoginDialogDelete">Löschen</string>
-    <string name="autofillDeleteLoginDialogTitle">Möchtest du diese Anmeldedaten wirklich löschen?</string>
+
 
     <string name="autofillManagementUsernameCopied">Benutzername kopiert</string>
     <string name="autofillManagementPasswordCopied">Passwort kopiert</string>
 
     <string name="autofill_password_generation_offer_title">Ein sicheres Passwort von DuckDuckGo verwenden?</string>
-    <string name="autofill_password_generation_offer_message">Passwörter werden sicher auf deinem Gerät im Anmeldedaten-Menü gespeichert.</string>
     <string name="autofill_password_generation_offer_accept">Sicheres Passwort verwenden</string>
     <string name="autofill_password_generation_offer_decline">Eigenes erstellen</string>
 
     <string name="deviceNotSupportedTitle">Gerät nicht unterstützt</string>
-    <string name="deviceNotSupportedSubtitle">Um die Anmeldedaten sicher zu speichern, müssen sie auf deinem Gerät verschlüsselt und gespeichert werden. Da dein Gerät keine verschlüsselte Speicherung unterstützt, sind die Anmeldedaten nicht verfügbar.</string>
 
-    <string name="autofillManagementDeletedConfirmation">Anmeldedaten gelöscht</string>
     <string name="autofillManagementUndoDeletion">Rückgängig machen</string>
 
     <string name="credentialManagementLinkButtonContentDescription" instruction="Accessibility text for a button that will show next to a text field containing a website address; it will launch the website when tapped">Website öffnen</string>
@@ -116,7 +100,6 @@
     <string name="autofillTooltipGenerateAddress" instruction="&apos;Duck Address&apos; is the feature name, and should not be translated.">Private Duck-Adresse generieren</string>
     <string name="autofillTooltipGenerateAddressDescription" instruction="&apos;hide address&apos; refers to using an alias so your real email address is not used">E-Mail-Tracker blockieren &amp; Adresse verbergen</string>
 
-    <string name="autofillDisableAutofillPromptTitle">Möchtest du weiterhin Anmeldedaten speichern?</string>
     <string name="autofillDisableAutofillPromptMessage">Du kannst dies jederzeit in den Einstellungen deaktivieren.</string>
     <string name="autofillDisableAutofillPromptPositiveButton">Weiterhin speichern</string>
     <string name="autofillDisableAutofillPromptNegativeButton">Deaktivieren</string>
@@ -129,5 +112,52 @@
     <string name="autofillEmailProtectionInContextSignUpConfirmExitDialogTitle">Wenn du jetzt beendest, wird deine Duck Address nicht gespeichert</string>
     <string name="autofillEmailProtectionInContextSignUpConfirmExitDialogPositiveButton">Einrichtung fortsetzen</string>
     <string name="autofillEmailProtectionInContextSignUpConfirmExitDialogNegativeButton">Einrichtung beenden</string>
+
+    <string name="autofillManagementScreenTitle">Passwörter</string>
+    <string name="credentialManagementNoLoginsSavedTitle">Noch keine Passwörter gespeichert</string>
+    <string name="credentialManagementAutofillToggleLabel">Passwörter speichern und automatisch ausfüllen</string>
+    <string name="credentialManagementAutofillToggleSubtitle">Passwörter werden sicher auf deinem Gerät gespeichert</string>
+    <string name="saveLoginDialogSubtitle">Passwörter werden sicher auf deinem Gerät gespeichert.</string>
+    <string name="autofillManagementAddLogin">Passwort hinzufügen</string>
+    <string name="credentialManagementEditLoginTitleHint">Titel</string>
+    <string name="autofillDeleteLoginDialogTitle">Möchtest du dieses Passwort wirklich löschen?</string>
+    <string name="autofillManagementDeletedConfirmation">Passwort gelöscht</string>
+    <string name="credentialManagementEditLastUpdated" instruction="Placeholder is a date">Zuletzt aktualisiert %1$s</string>
+    <string name="autofillDisableAutofillPromptTitle">Möchtest du weiterhin Passwörter speichern?</string>
+    <string name="deviceNotSupportedSubtitle">Um Passwörter sicher zu speichern, müssen sie auf deinem Gerät verschlüsselt und gespeichert werden. Da dein Gerät keine verschlüsselte Speicherung unterstützt, ist das Speichern und automatische Ausfüllen von Passwörtern nicht möglich.</string>
+    <string name="autofill_password_generation_offer_message">Passwörter werden sicher auf deinem Gerät gespeichert.</string>
+    <string name="autofillManagementSearchLogins">Passwörter suchen</string>
+    <string name="biometric_prompt_title">Passwörter gesperrt</string>
+    <string name="autofill_auth_text_for_access">Gerät entsperren, um auf Passwörter zuzugreifen</string>
+    <string name="managementDisabledModeTitle">Sichere dein Gerät, um Passwörter zu speichern</string>
+    <string name="managementDisabledModeSubtitle">Es sind ein Muster, eine PIN oder biometrische Daten erforderlich, um deine Passwörter zu schützen.</string>
+    <string name="credentialManagementEditTitle">Passwort bearbeiten</string>
+
+    <string name="credentials_limit_warning"><b>Synchronisierung angehalten</b>\nAnmeldelimit überschritten. Lösche Lesezeichen, um die Synchronisierung fortzusetzen.\n\n<annotation type="manage_logins">Anmeldedaten verwalten</annotation></string>
+    <string name="credentials_limit_warning_notif"><b>Die Passwort-Synchronisierung wurde pausiert</b>\nDu hast das Limit für die Synchronisierung von Passwörtern überschritten. Versuche, einige Passwörter zu löschen. Bis dieses Problem behoben ist, werden deine Passwörter nicht gesichert.</string>
+
+    <string name="saveLoginDialogNeverForThisSite">Für diese Website niemals fragen</string>
+    <string name="credentialManagementInstructionNeverForThisSite">Wenn du die ausgeschlossenen Websites zurücksetzt, wirst du aufgefordert, dein Passwort zu speichern, wenn du dich das nächste Mal auf einer dieser Websites anmeldest.</string>
+    <string name="credentialManagementClearNeverForThisSiteList">Ausgeschlossene Websites zurücksetzen</string>
+    <string name="credentialManagementClearNeverForThisSiteDialogTitle">Ausgeschlossene Websites zurücksetzen?</string>
+    <string name="credentialManagementClearNeverForThisSiteDialogPositiveButton">Zurücksetzen</string>
+    <string name="credentialManagementClearNeverForThisSiteDialogNegativeButton">Abbrechen</string>
+
+    <string name="credentialManagementDeleteAllPasswordsMenu">Alle Passwörter löschen</string>
+    <plurals name="credentialManagementDeleteAllPasswordsConfirmationTitle" instruction="Placeholder is a number representing how many passwords will be deleted">
+        <item quantity="one">Möchtest du dieses %1$d Passwort wirklich löschen?</item>
+        <item quantity="other">Möchtest du diese %1$d Passwörter wirklich löschen?</item>
+    </plurals>
+
+    <string name="credentialManagementDeletePasswordConfirmationMessage">Dein Passwort wird von allen synchronisierten Geräten gelöscht. Vergewissere dich, dass du weiterhin eine Möglichkeit hast, auf dein Konto zuzugreifen.</string>
+    <string name="credentialManagementDeleteAllPasswordsConfirmationMessage">Deine Passwörter werden von allen synchronisierten Geräten gelöscht. Vergewissere dich, dass du weiterhin eine Möglichkeit hast, auf deine Konten zuzugreifen.</string>
+
+    <plurals name="credentialManagementDeleteAllPasswordsSnackbarConfirmation" instruction="Placeholder is a number representing how many passwords were deleted">
+        <item quantity="one">%1$d Passwort gelöscht</item>
+        <item quantity="other">%1$d Passwörter gelöscht</item>
+    </plurals>
+
+    <string name="autofill_auth_text_for_delete_all">Authentifiziere dich, um zu bestätigen, dass du alle Passwörter löschen willst</string>
+    <string name="autofill_title_text_for_delete_all">Alle Passwörter löschen</string>
 
 </resources>

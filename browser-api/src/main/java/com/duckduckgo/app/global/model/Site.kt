@@ -61,6 +61,7 @@ interface Site {
     fun trackerDetected(event: TrackingEvent)
     fun onHttpErrorDetected(errorCode: Int)
     fun onErrorDetected(error: String)
+    fun resetErrors()
     fun updatePrivacyData(sitePrivacyData: SitePrivacyData)
     fun surrogateDetected(surrogate: SurrogateResponse)
 
@@ -82,6 +83,11 @@ fun Site.orderedTrackerBlockedEntities(): List<Entity> = trackingEvents
 
 fun Site.domainMatchesUrl(matchingUrl: String): Boolean {
     return uri?.baseHost == matchingUrl.toUri().baseHost
+}
+
+fun Site.domainMatchesUrl(matchingUrl: Uri): Boolean {
+    // TODO (cbarreiro) can we get rid of baseHost for the Uri as well?
+    return uri?.baseHost == matchingUrl.host
 }
 
 val Site.domain get() = uri?.domain()

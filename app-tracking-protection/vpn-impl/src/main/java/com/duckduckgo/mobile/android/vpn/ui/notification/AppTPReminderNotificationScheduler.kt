@@ -26,6 +26,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.duckduckgo.common.utils.DispatcherProvider
+import com.duckduckgo.common.utils.notification.checkPermissionAndNotify
 import com.duckduckgo.common.utils.plugins.PluginPoint
 import com.duckduckgo.di.scopes.VpnScope
 import com.duckduckgo.mobile.android.app.tracking.AppTrackingProtection
@@ -80,18 +81,22 @@ class AppTPReminderNotificationScheduler @Inject constructor(
         coroutineScope.launch(dispatchers.io()) {
             when (vpnStopReason) {
                 VpnStopReason.RESTART -> {} // no-op
-                VpnStopReason.SELF_STOP -> onVPNManuallyStopped()
+                is VpnStopReason.SELF_STOP -> onVPNManuallyStopped(coroutineScope, vpnStopReason.snoozedTriggerAtMillis)
                 VpnStopReason.REVOKED -> onVPNRevoked()
                 else -> onVPNUndesiredStop()
             }
         }
     }
 
-    private suspend fun onVPNManuallyStopped() {
-        if (vpnFeatureRemover.isFeatureRemoved()) {
-            logcat { "VPN Manually stopped because user disabled the feature, nothing to do" }
-        } else {
-            handleNotifForDisabledAppTP()
+    private suspend fun onVPNManuallyStopped(coroutineScope: CoroutineScope, snoozedTriggerAtMillis: Long) {
+        coroutineScope.launch(dispatchers.io()) {
+            if (vpnFeatureRemover.isFeatureRemoved()) {
+                logcat { "VPN Manually stopped because user disabled the feature, nothing to do" }
+            } else {
+                if (snoozedTriggerAtMillis == 0L) {
+                    handleNotifForDisabledAppTP()
+                }
+            }
         }
     }
 
@@ -175,7 +180,8 @@ class AppTPReminderNotificationScheduler @Inject constructor(
         vpnReminderNotificationContentPluginPoint.getHighestPriorityPluginForType(DISABLED)?.let {
             it.getContent()?.let { content ->
                 logcat { "Showing disabled notification from $it" }
-                notificationManager.notify(
+                notificationManager.checkPermissionAndNotify(
+                    context,
                     TrackerBlockingVpnService.VPN_REMINDER_NOTIFICATION_ID,
                     vpnReminderNotificationBuilder.buildReminderNotification(content),
                 )
@@ -187,7 +193,8 @@ class AppTPReminderNotificationScheduler @Inject constructor(
         vpnReminderNotificationContentPluginPoint.getHighestPriorityPluginForType(REVOKED)?.let {
             it.getContent()?.let { content ->
                 logcat { "Showing revoked notification from $it" }
-                notificationManager.notify(
+                notificationManager.checkPermissionAndNotify(
+                    context,
                     TrackerBlockingVpnService.VPN_REMINDER_NOTIFICATION_ID,
                     vpnReminderNotificationBuilder.buildReminderNotification(content),
                 )

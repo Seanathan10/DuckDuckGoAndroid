@@ -16,12 +16,11 @@
 
 package com.duckduckgo.networkprotection.subscription
 
-import com.duckduckgo.appbuildconfig.api.AppBuildConfig
 import com.duckduckgo.common.utils.DispatcherProvider
 import com.duckduckgo.di.scopes.AppScope
 import com.duckduckgo.navigation.api.GlobalActivityStarter.ActivityParams
-import com.duckduckgo.networkprotection.api.NetPWaitlistInvitedScreenNoParams
-import com.duckduckgo.networkprotection.api.NetworkProtectionManagementScreenNoParams
+import com.duckduckgo.networkprotection.api.NetworkProtectionScreens.NetworkProtectionManagementScreenAndEnable
+import com.duckduckgo.networkprotection.api.NetworkProtectionScreens.NetworkProtectionManagementScreenNoParams
 import com.duckduckgo.networkprotection.api.NetworkProtectionState
 import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist
 import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitlistState
@@ -29,34 +28,65 @@ import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitli
 import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitlistState.JoinedWaitlist
 import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitlistState.NotUnlocked
 import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitlistState.PendingInviteCode
-import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitlistState.VerifySubscription
+import com.duckduckgo.networkprotection.impl.store.NetworkProtectionRepository
+import com.duckduckgo.networkprotection.impl.waitlist.NetworkProtectionWaitlistImpl
 import com.duckduckgo.networkprotection.impl.waitlist.store.NetPWaitlistRepository
-import com.duckduckgo.networkprotection.subscription.ui.NetpVerifySubscriptionParams
 import com.duckduckgo.subscriptions.api.Subscriptions
 import com.squareup.anvil.annotations.ContributesBinding
-import com.squareup.anvil.annotations.ContributesBinding.Priority.HIGHEST
 import javax.inject.Inject
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
-@ContributesBinding(
-    AppScope::class,
-    priority = HIGHEST, // binding for internal-testing build wins
-)
-class NetworkProtectionWaitlistWithSubsImpl @Inject constructor(
+@ContributesBinding(AppScope::class)
+class NetworkProtectionState @Inject constructor(
+    private val waitlistState: NetworkProtectionWaitlistImpl,
+    private val subscriptionState: NetworkProtectionAccessState,
+    private val subscriptions: Subscriptions,
+) : NetworkProtectionWaitlist {
+
+    override suspend fun getState(): NetPWaitlistState {
+        return if (subscriptions.isEnabled()) {
+            subscriptionState.getState()
+        } else {
+            waitlistState.getState()
+        }
+    }
+
+    override suspend fun getStateFlow(): Flow<NetPWaitlistState> {
+        return if (subscriptions.isEnabled()) {
+            subscriptionState.getStateFlow()
+        } else {
+            waitlistState.getStateFlow()
+        }
+    }
+
+    override suspend fun getScreenForCurrentState(): ActivityParams? {
+        return if (subscriptions.isEnabled()) {
+            subscriptionState.getScreenForCurrentState()
+        } else {
+            waitlistState.getScreenForCurrentState()
+        }
+    }
+}
+
+// TODO after Privacy pro launch this will become the NetworkProtectionState
+class NetworkProtectionAccessState @Inject constructor(
     private val netPWaitlistRepository: NetPWaitlistRepository,
     private val networkProtectionState: NetworkProtectionState,
-    private val appBuildConfig: AppBuildConfig,
-    private val subscriptions: Subscriptions,
     private val dispatcherProvider: DispatcherProvider,
+    private val netpSubscriptionManager: NetpSubscriptionManager,
+    private val networkProtectionRepository: NetworkProtectionRepository,
+    private val subscriptions: Subscriptions,
 ) : NetworkProtectionWaitlist {
 
     override suspend fun getState(): NetPWaitlistState = withContext(dispatcherProvider.io()) {
         if (isTreated()) {
-            return@withContext if (!hasValidNetPEntitlements()) {
+            return@withContext if (!netpSubscriptionManager.hasValidEntitlement()) {
+                // if entitlement check succeeded and no entitlement, reset state and hide access.
+                handleRevokedVPNState()
                 NotUnlocked
-            } else if (netPWaitlistRepository.getAuthenticationToken() == null) {
-                VerifySubscription
             } else {
                 InBeta(netPWaitlistRepository.didAcceptWaitlistTerms())
             }
@@ -64,26 +94,42 @@ class NetworkProtectionWaitlistWithSubsImpl @Inject constructor(
         return@withContext NotUnlocked
     }
 
-    private fun hasValidNetPEntitlements(): Boolean {
-        return runBlocking { subscriptions.hasEntitlement(NETP_ENTITLEMENT) }
+    override suspend fun getStateFlow(): Flow<NetPWaitlistState> = withContext(dispatcherProvider.io()) {
+        if (isTreated()) {
+            netpSubscriptionManager.hasValidEntitlementFlow().map {
+                if (!it) {
+                    // if entitlement check succeeded and no entitlement, reset state and hide access.
+                    handleRevokedVPNState()
+                    NotUnlocked
+                } else {
+                    InBeta(netPWaitlistRepository.didAcceptWaitlistTerms())
+                }
+            }
+        } else {
+            flowOf(NotUnlocked)
+        }
     }
 
-    override suspend fun getScreenForCurrentState(): ActivityParams {
+    private suspend fun handleRevokedVPNState() {
+        if (networkProtectionState.isEnabled()) {
+            networkProtectionRepository.vpnAccessRevoked = true
+            networkProtectionState.stop()
+        }
+    }
+
+    override suspend fun getScreenForCurrentState(): ActivityParams? {
         return when (getState()) {
             is InBeta -> {
                 if (netPWaitlistRepository.didAcceptWaitlistTerms() || networkProtectionState.isOnboarded()) {
                     NetworkProtectionManagementScreenNoParams
                 } else {
-                    NetPWaitlistInvitedScreenNoParams
+                    NetworkProtectionManagementScreenAndEnable(false)
                 }
             }
-            JoinedWaitlist, NotUnlocked, PendingInviteCode, VerifySubscription -> NetpVerifySubscriptionParams
+
+            JoinedWaitlist, NotUnlocked, PendingInviteCode -> null
         }
     }
 
-    private fun isTreated(): Boolean = appBuildConfig.isDebug
-
-    companion object {
-        private const val NETP_ENTITLEMENT = "Dummy"
-    }
+    private suspend fun isTreated(): Boolean = subscriptions.isEnabled()
 }

@@ -17,12 +17,15 @@
 package com.duckduckgo.app.anr
 
 import android.util.Base64
+import com.duckduckgo.app.anr.CrashPixel.APPLICATION_CRASH_GLOBAL
+import com.duckduckgo.app.anr.CrashPixel.APPLICATION_CRASH_GLOBAL_VERIFIED_INSTALL
 import com.duckduckgo.app.anrs.store.UncaughtExceptionDao
 import com.duckduckgo.app.statistics.api.OfflinePixel
 import com.duckduckgo.app.statistics.api.PixelSender
-import com.duckduckgo.app.statistics.pixels.Pixel.StatisticsPixelName.APPLICATION_CRASH_GLOBAL
+import com.duckduckgo.app.statistics.pixels.Pixel.PixelType.COUNT
 import com.duckduckgo.browser.api.WebViewVersionProvider
 import com.duckduckgo.di.scopes.AppScope
+import com.duckduckgo.verifiedinstallation.IsVerifiedPlayStoreInstall
 import com.squareup.anvil.annotations.ContributesMultibinding
 import io.reactivex.Completable
 import javax.inject.Inject
@@ -33,6 +36,7 @@ class CrashOfflinePixelSender @Inject constructor(
     private val uncaughtExceptionDao: UncaughtExceptionDao,
     private val pixelSender: PixelSender,
     private val webViewVersionProvider: WebViewVersionProvider,
+    private val isVerifiedPlayStoreInstall: IsVerifiedPlayStoreInstall,
 ) : OfflinePixel {
     override fun send(): Completable {
         return Completable.defer {
@@ -53,8 +57,18 @@ class CrashOfflinePixelSender @Inject constructor(
                         EXCEPTION_WEBVIEW_VERSION to webViewVersionProvider.getFullVersion(),
                     )
 
+                if (isVerifiedPlayStoreInstall()) {
+                    val verifiedPixel = pixelSender.sendPixel(
+                        pixelName = APPLICATION_CRASH_GLOBAL_VERIFIED_INSTALL.pixelName,
+                        parameters = params,
+                        encodedParameters = emptyMap(),
+                        type = COUNT,
+                    )
+                    pixels.add(verifiedPixel.ignoreElement())
+                }
+
                 val pixel =
-                    pixelSender.sendPixel(APPLICATION_CRASH_GLOBAL.pixelName, params, emptyMap()).doOnComplete {
+                    pixelSender.sendPixel(APPLICATION_CRASH_GLOBAL.pixelName, params, emptyMap(), COUNT).ignoreElement().doOnComplete {
                         logcat { "Sent pixel with params: $params containing exception; deleting exception with id=${exception.hash}" }
                         uncaughtExceptionDao.delete(exception)
                     }

@@ -141,7 +141,7 @@
     <!-- Exclusion List -->
     <string name="atp_ExclusionListActivityTitle">Všetky aplikácie</string>
     <string name="atp_ExcludedAppsFeature">Ochrana pred sledovaním aplikácií zisťuje a blokuje sledovacie aplikácie iných spoločností, napríklad keď sa vás Facebook pokúša sledovať v aplikácii pre zdravie. Spoločnosti vás môžu stále sledovať v aplikáciách, ktoré vlastnia.\n\nAk niektorá aplikácia nefunguje podľa očakávania, skúste vypnúť jej ochranu.</string>
-    <string name="atp_ExcludedAppsEnabledLabel">Počas beta verzie môže DuckDuckGo vypnúť ochranu niektorých aplikácií, aby sa vyriešili známe problémy s načítavaním obsahu. Vaše vlastné nastavenia sa nezmenia, pokiaľ neobnovíte predvolené nastavenia.</string>
+    <string name="atp_ExcludedAppsEnabledLabel">DuckDuckGo môže vypnúť ochranu niektorých aplikácií, aby sa vyriešili známe problémy s načítavaním obsahu. Vaše vlastné nastavenia sa nezmenia, pokiaľ neobnovíte predvolené nastavenia.</string>
     <string name="atp_ExcludedAppsDisabledLabel"><b>Ochrana pred sledovaním aplikácií je vypnutá</b> Spôsobila ochrana pred sledovaním aplikácií problém s aplikáciami <annotation type="report_issues_link">nahlásiť problémy</annotation></string>
     <string name="atp_ExcludedAppsReport">Nahlásiť problém s inou aplikáciou</string>
     <string name="atp_ExcludedReasonManuallyDisabled">Ručne vypnuté</string>
@@ -231,7 +231,6 @@
         <item quantity="many">Aplikácie</item>
         <item quantity="other">Aplikácií</item>
     </plurals>
-    <string name="atp_ActivityEnabledLabel">Táto funkcia je vo verzii beta. Zaznamenali ste nejaký problém s aplikáciou? <annotation type="app_settings_link">Prosím, nahláste problém.</annotation></string>
     <string name="atp_ActivityDisabledLabel"><b>Ochrana sledovania aplikácií je vypnutá</b>\nSpôsobila ochrana sledovania aplikácií problém s vašimi aplikáciami? <annotation type="report_issues_link">Hlásenie problémov</annotation></string>
     <string name="atp_ActivityDisabledBySystemLabel"><b>Android zakázal ochranu pred sledovaním aplikácií</b>. Chcete zabrániť tomu, aby sa to opakovalo? <annotation type="re_enable_link">Znovu povoliť</annotation></string>
     <string name="atp_ActivityRevokedLabel"><b>Ochrana proti sledovaniu aplikácií je zakázaná. </b>\nMohla ju zakázať VPN aplikácia vo vašom zariadení. Na opätovné zapnutie použite vyššie uvedený prepínač.</string>
@@ -411,7 +410,7 @@
     <string name="atp_ExcludeAppsManuallyCTANotNow">Teraz nie</string>
     <string name="atp_ActivityRecentActivityHeader">Aktivita</string>
     <string name="atp_ActivityManageProtectionLabel">Máte problémy?</string>
-    <string name="atp_ActivityEnabledBannerLabel">Pri používaní beta verzie je ochrana niektorých aplikácií automaticky vypnutá. <annotation type="app_settings_link">Zobraziť aplikácie</annotation></string>
+    <string name="atp_ActivityEnabledBannerLabel">Ochrana je pre niektoré aplikácie automaticky vypnutá. <annotation type="app_settings_link">Zobraziť aplikácie</annotation></string>
     <string name="atp_ActivityDescription">Tu sa zobrazia zablokované pokusy o sledovanie</string>
     <plurals name="atp_ActivityProtectedApps" instruction="Placeholder is the number of apps that are protected">
         <item quantity="one">%1$s z vašich aplikácií je chránených pred skrytými sledovaniami, o ktorých si myslíme, že sa pokúšajú získať prístup k vašim osobným údajom</item>
@@ -434,7 +433,7 @@
     <string name="atp_ExcludedAppsFilterMenuUnprotectedLabel">Ochrana vypnutá</string>
     <string name="atp_ExcludedAppsFilterMenuAllLabel">Všetko</string>
     <string name="atp_ActivityViewAppsLabel">Zobraziť aplikácie</string>
-    <string name="atp_ActivityEnabledMoreThanADayLabel">Táto funkcia je vo verzii beta. Máte problémy s aplikáciou? <annotation type="app_settings_link"> Pomôžte nám zlepšiť sa </annotation></string>
+    <string name="atp_ActivityEnabledMoreThanADayLabel">Máte problémy s aplikáciou? <annotation type="app_settings_link"> Pomôžte nám zlepšiť sa </annotation></string>
     <string name="atp_ExcludedAppsEnabledLearnWhyLabel">Pri niektorých aplikáciách môžu nastať problémy, keď je zapnutá ochrana aplikácií pred sledovaním.\n<annotation type="learn_why_link">Zistite, prečo</annotation></string>
     <string name="atp_ExcludedAppsDisabledLearnWhyLabel">Ochrana je zakázaná pre aplikácie so známymi problémami. Tieto aplikácie môžete povoliť, ale nemusia fungovať podľa očakávania. <annotation type="learn_why_link">Zistite, prečo</annotation></string>
 

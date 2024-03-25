@@ -22,8 +22,8 @@ import com.duckduckgo.appbuildconfig.api.isInternalBuild
 import com.duckduckgo.common.utils.DispatcherProvider
 import com.duckduckgo.di.scopes.AppScope
 import com.duckduckgo.navigation.api.GlobalActivityStarter.ActivityParams
-import com.duckduckgo.networkprotection.api.NetPWaitlistInvitedScreenNoParams
-import com.duckduckgo.networkprotection.api.NetworkProtectionManagementScreenNoParams
+import com.duckduckgo.networkprotection.api.NetworkProtectionScreens.NetPWaitlistInvitedScreenNoParams
+import com.duckduckgo.networkprotection.api.NetworkProtectionScreens.NetworkProtectionManagementScreenNoParams
 import com.duckduckgo.networkprotection.api.NetworkProtectionState
 import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist
 import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitlistState
@@ -31,11 +31,9 @@ import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitli
 import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitlistState.JoinedWaitlist
 import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitlistState.NotUnlocked
 import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitlistState.PendingInviteCode
-import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitlistState.VerifySubscription
 import com.duckduckgo.networkprotection.impl.pixels.NetworkProtectionPixels
 import com.duckduckgo.networkprotection.impl.state.NetPFeatureRemover
 import com.duckduckgo.networkprotection.impl.waitlist.store.NetPWaitlistRepository
-import com.squareup.anvil.annotations.ContributesBinding
 import com.squareup.anvil.annotations.ContributesTo
 import dagger.Module
 import dagger.Provides
@@ -43,12 +41,13 @@ import java.util.*
 import javax.inject.Inject
 import javax.inject.Qualifier
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import logcat.logcat
 
-@ContributesBinding(AppScope::class)
 class NetworkProtectionWaitlistImpl @Inject constructor(
     private val netPRemoteFeature: NetPRemoteFeatureWrapper,
     private val appBuildConfig: AppBuildConfig,
@@ -74,7 +73,12 @@ class NetworkProtectionWaitlistImpl @Inject constructor(
         return@withContext NotUnlocked
     }
 
-    override suspend fun getScreenForCurrentState(): ActivityParams = withContext(dispatcherProvider.io()) {
+    override suspend fun getStateFlow(): Flow<NetPWaitlistState> {
+        // NO_OP for waitlist as this is not used
+        return emptyFlow()
+    }
+
+    override suspend fun getScreenForCurrentState(): ActivityParams? = withContext(dispatcherProvider.io()) {
         return@withContext when (getState()) {
             is InBeta -> {
                 if (netPWaitlistRepository.didAcceptWaitlistTerms() || networkProtectionState.isOnboarded()) {
@@ -83,7 +87,7 @@ class NetworkProtectionWaitlistImpl @Inject constructor(
                     NetPWaitlistInvitedScreenNoParams
                 }
             }
-            JoinedWaitlist, NotUnlocked, PendingInviteCode, VerifySubscription -> NetPWaitlistScreenNoParams
+            JoinedWaitlist, NotUnlocked, PendingInviteCode -> NetPWaitlistScreenNoParams
         }
     }
 

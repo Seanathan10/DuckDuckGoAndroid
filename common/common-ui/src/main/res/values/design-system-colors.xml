@@ -101,6 +101,8 @@
     <color name="alertRedOnDarkPressed">#D1454A</color>
     <color name="alertRedOnLightTextPressed">@color/alertRedOnLightPressed</color>
     <color name="alertRedOnDarkTextPressed">#FF7378</color>
+    <color name="daxColorBlurLight">#7A626262</color>
+    <color name="daxColorBlurDark">#B3111111</color>
 
     <!-- Design System Raw Colors -->
     <color name="red20">#F2A18A</color>
@@ -194,6 +196,7 @@
     <color name="paleBrownishGray">#d0d0d0</color>
     <color name="brownishGrayTwo">#666666</color>
     <color name="cornflowerBlue">#678fff</color>
+    <color name="cornflowerBlue_10">#1A678fff</color>
     <color name="cornflowerDark">#5078e9</color>
     <color name="translucentDark">#b000</color>
     <color name="light_blue">#F2F5F9</color>

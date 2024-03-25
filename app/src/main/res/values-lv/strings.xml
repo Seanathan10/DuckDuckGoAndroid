@@ -150,7 +150,6 @@
     <string name="settingsWebTrackingProtectionDescription">Iespējots pēc noklusējuma</string>
     <string name="settingsHeadingSettings">Iestatījumi</string>
     <string name="settingsPermissionsSetting">Atļaujas</string>
-    <string name="settingsAutofillLoginsSetting">Pieteikšanās dati</string>
     <string name="settingsSyncSetting">Sinhronizācija un dublēšana</string>
     <string name="settingsFireButton">Fire Button</string>
 
@@ -501,7 +500,6 @@
     <string name="onboardingFeatureOptionOneClickDataClearing">Viena klikšķa datu izdzēšana</string>
 
     <!-- Download Confirmation -->
-    <string name="downloadConfirmationContinue">Lejupielādēt</string>
     <string name="downloadConfirmationSaveFileTitle" instruction="Placeholder is the name of a file">Saglabāt %1$s</string>
     <string name="downloadConfirmationKeepBothFilesText">Paturēt abus</string>
     <string name="downloadConfirmationReplaceOldFileText">Aizstāt</string>
@@ -636,8 +634,6 @@
 
     <!-- Autofill -->
     <string name="autofillSnackbarAction" instruction="Label for a button that lets the user view the details for a login credential">Skatīt</string>
-    <string name="autofillLoginSavedSnackbarMessage">Pieteikšanās saglabāta</string>
-    <string name="autofillLoginUpdatedSnackbarMessage">Pieteikšanās atjaunināta</string>
 
     <!-- Waitlist Notification -->
     <string name="waitlistNotificationDialogDescription">Vai vēlies, lai mēs nosūtām tev paziņojumu, kad pienāks tava kārta?</string>
@@ -780,4 +776,46 @@
     <!-- Private voice search -->
     <string name="accessibilityVoiceSearchSubtitle">Pievienot adreses joslai opciju \"Privātā meklēšana ar balsi\". Audioieraksti netiek saglabāti un kopīgoti ar citiem, pat ne ar DuckDuckGo.</string>
     <string name="accessibilityVoiceSearchTitle">Privātā balss meklēšana</string>
+
+    <!-- Uploading an image from the camera or choosing to use existing image -->
+    <string name="imageCaptureCameraUnavailable">Nevar piekļūt kamerai</string>
+    <string name="imageCaptureCameraGalleryDisambiguationTitle">Augšupielādēt attēlu</string>
+    <string name="imageCaptureCameraGalleryDisambiguationGalleryOption">Izvēlēties failu</string>
+    <string name="imageCaptureCameraGalleryDisambiguationCameraOption">Uzņemt foto</string>
+    <string name="imageCaptureCameraPermissionDeniedTitle">Atļaut DuckDuckGo pieprasīt piekļuvi kamerai šajā ierīcē</string>
+    <string name="imageCaptureCameraPermissionDeniedMessage">Vietnes var izmantot tavu kameru tikai tad, ja tu atļauj DuckDuckGo prasīt piekļuvi.</string>
+    <string name="imageCaptureCameraPermissionDeniedPositiveButton">Atvērt iestatījumus</string>
+    <string name="imageCaptureCameraPermissionDeniedNegativeButton">Atcelt</string>
+
+    <!-- Autofill -->
+    <string name="settingsAutofillLoginsSetting">Paroles</string>
+    <string name="autofillLoginSavedSnackbarMessage">Parole saglabāta</string>
+    <string name="autofillLoginUpdatedSnackbarMessage">Parole atjaunināta</string>
+
+    <!-- Bookmarks -->
+    <string name="searchBookmarks">Meklēt grāmatzīmes</string>
+    <string name="deleteFolder" instruction="%1$s is the folder name">"Dzēst %1$s?"</string>
+    <string name="deleteBookmark" instruction="%1$s is the bookmark name">"Dzēst grāmatzīmi %1$s?"</string>
+    <string name="bookmarkAddedInBookmarks" instruction="%1$s is the folder name">Grāmatzīme pievienota mapē %1$s</string>
+    <string name="addToFavorites">Pievienot izlasei</string>
+    <string name="editBookmark">Rediģēt grāmatzīmi</string>
+    <string name="importBookmarksDescription">Ja tavas grāmatzīmes ir saglabātas citā pārlūkā,\nvari tās importēt DuckDuckGo.</string>
+    <string name="importBookmarks">Importēt grāmatzīmes</string>
+    <string name="noResultsFor" instruction="%1$s is the search term">Vaicājumam “%1$s” nav rezultātu</string>
+    <string name="removeFromFavorites">Noņemt no izlases</string>
+    <string name="addToFavoritesMenu">Pievienot izlasei</string>
+    <plurals name="bookmarkFolderDeleteMessage">
+        <item quantity="zero">Vai tiešām vēlies dzēst šo mapi un %1$d vienumus?</item>
+        <item quantity="one">Vai tiešām vēlies dzēst šo mapi un %1$d vienumu?</item>
+        <item quantity="other">Vai tiešām vēlies dzēst šo mapi un %1$d vienumus?</item>
+    </plurals>
+    <string name="deleteBookmarkConfirmationDescription" instruction="Placeholder is the name of the bookmark">Vai tiešām vēlies dzēst savu &lt;b&gt;%1$s&lt;/b&gt; grāmatzīmi?</string>
+
+    <!-- Sync Favicons -->
+    <string name="sync_fetch_icons_title">Ienest grāmatzīmju ikonas</string>
+    <string name="sync_fetch_icons_subtitle">Automātiski lejupielādē sinhronizēto grāmatzīmju ikonas.</string>
+    <string name="faviconsPromptTitle">Lejupielādēt trūkstošās ikonas?</string>
+    <string name="faviconsPromptMessage">Vai vēlies, lai šī ierīce automātiski lejupielādētu sinhronizēto grāmatzīmju ikonas no vietnēm, kuru grāmatzīmes ir saglabātas?</string>
+    <string name="faviconsPromptPrimaryCta">Pastāvīgi atjaunināt grāmatzīmju ikonas</string>
+    <string name="faviconsPromptSecondaryCta">Ne tagad</string>
 </resources>

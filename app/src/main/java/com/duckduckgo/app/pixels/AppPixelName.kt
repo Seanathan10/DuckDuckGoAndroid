@@ -20,6 +20,10 @@ import com.duckduckgo.app.statistics.pixels.Pixel
 
 enum class AppPixelName(override val pixelName: String) : Pixel.PixelName {
     APP_LAUNCH("ml"),
+    PROCESS_CREATED_MAIN("m_process_created_main"),
+    PROCESS_CREATED_VPN("m_process_created_vpn"),
+
+    APP_LAUNCH_VERIFIED_INSTALL("m_app_launched_on_verified_play_store_install"),
 
     FORGET_ALL_PRESSED_BROWSING("mf_bp"),
     FORGET_ALL_PRESSED_TABSWITCHING("mf_tp"),
@@ -39,6 +43,7 @@ enum class AppPixelName(override val pixelName: String) : Pixel.PixelName {
 
     BROWSER_MENU_ALLOWLIST_ADD("mb_wla"),
     BROWSER_MENU_ALLOWLIST_REMOVE("mb_wlr"),
+    BROWSER_PULL_TO_REFRESH("m_browser_pull_to_refresh"),
 
     DEFAULT_BROWSER_SET("m_db_s"),
     DEFAULT_BROWSER_NOT_SET("m_db_ns"),
@@ -254,6 +259,7 @@ enum class AppPixelName(override val pixelName: String) : Pixel.PixelName {
     EMAIL_DID_PRESS_WAITLIST_DIALOG_NOTIFY_ME("email_did_press_waitlist_dialog_notify_me"),
     EMAIL_DID_PRESS_WAITLIST_DIALOG_NO_THANKS("email_did_press_waitlist_dialog_dismiss"),
 
+    ENCRYPTION_UNABLE_TO_DECRYPT_SECURE_EMAIL_DATA("m_unable_to_decrypt_secure_email_data"),
     ENCRYPTED_IO_EXCEPTION("m_e_io_e"),
     ENCRYPTED_GENERAL_EXCEPTION("m_e_g_e"),
 
@@ -264,4 +270,6 @@ enum class AppPixelName(override val pixelName: String) : Pixel.PixelName {
     REMOTE_MESSAGE_SECONDARY_ACTION_CLICKED("m_remote_message_secondary_action_clicked"),
     REMOTE_MESSAGE_ACTION_CLICKED("m_remote_message_action_clicked"),
     REMOTE_MESSAGE_SHARED("m_remote_message_share"),
+
+    PRIVACY_PRO_IS_ENABLED_AND_ELIGIBLE("m_privacy-pro_is-enabled"),
 }

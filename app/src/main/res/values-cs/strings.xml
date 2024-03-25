@@ -150,7 +150,6 @@
     <string name="settingsWebTrackingProtectionDescription">Ve výchozím nastavení povoleno</string>
     <string name="settingsHeadingSettings">Nastavení</string>
     <string name="settingsPermissionsSetting">Oprávnění</string>
-    <string name="settingsAutofillLoginsSetting">Přihlášení</string>
     <string name="settingsSyncSetting">Synchronizace a zálohování</string>
     <string name="settingsFireButton">Fire Button</string>
 
@@ -503,7 +502,6 @@
     <string name="onboardingFeatureOptionOneClickDataClearing">Smazání dat jedním kliknutím</string>
 
     <!-- Download Confirmation -->
-    <string name="downloadConfirmationContinue">Uložit do Stahování</string>
     <string name="downloadConfirmationSaveFileTitle" instruction="Placeholder is the name of a file">Uložit %1$s</string>
     <string name="downloadConfirmationKeepBothFilesText">Nechat si oba</string>
     <string name="downloadConfirmationReplaceOldFileText">Nahradit</string>
@@ -638,8 +636,6 @@
 
     <!-- Autofill -->
     <string name="autofillSnackbarAction" instruction="Label for a button that lets the user view the details for a login credential">Zobrazit</string>
-    <string name="autofillLoginSavedSnackbarMessage">Přihlašovací údaje uloženy</string>
-    <string name="autofillLoginUpdatedSnackbarMessage">Příhlašovací údaje aktualizovány</string>
 
     <!-- Waitlist Notification -->
     <string name="waitlistNotificationDialogDescription">Chcete, abychom vám poslali upozornění, až na vás bude řada?</string>
@@ -784,4 +780,47 @@
     <!-- Private voice search -->
     <string name="accessibilityVoiceSearchSubtitle">Přidej si na adresní řádek funkci soukromého hlasového vyhledávání. Zvuk nikde neukládáme a s nikým ho nesdílíme. Ani DuckDuckGo se k němu nedostane.</string>
     <string name="accessibilityVoiceSearchTitle">Soukromé hlasové vyhledávání</string>
+
+    <!-- Uploading an image from the camera or choosing to use existing image -->
+    <string name="imageCaptureCameraUnavailable">Nemáme přístup k fotoaparátu</string>
+    <string name="imageCaptureCameraGalleryDisambiguationTitle">Nahrát obrázek</string>
+    <string name="imageCaptureCameraGalleryDisambiguationGalleryOption">Vyber soubor</string>
+    <string name="imageCaptureCameraGalleryDisambiguationCameraOption">Vyfotit se</string>
+    <string name="imageCaptureCameraPermissionDeniedTitle">Povolit DuckDuckGo žádat na tomto zařízení o přístup k fotoaparátu</string>
+    <string name="imageCaptureCameraPermissionDeniedMessage">Weby můžou používat fotoaparát, jen když službě DuckDuckGo povolíš žádat o přístup.</string>
+    <string name="imageCaptureCameraPermissionDeniedPositiveButton">Otevřít nastavení</string>
+    <string name="imageCaptureCameraPermissionDeniedNegativeButton">Zrušit</string>
+
+    <!-- Autofill -->
+    <string name="settingsAutofillLoginsSetting">Hesla</string>
+    <string name="autofillLoginSavedSnackbarMessage">Heslo je uložené</string>
+    <string name="autofillLoginUpdatedSnackbarMessage">Heslo je aktualizované</string>
+
+    <!-- Bookmarks -->
+    <string name="searchBookmarks">Prohledat záložky</string>
+    <string name="deleteFolder" instruction="%1$s is the folder name">"Smazat složku %1$s?"</string>
+    <string name="deleteBookmark" instruction="%1$s is the bookmark name">"Smazat záložku %1$s?"</string>
+    <string name="bookmarkAddedInBookmarks" instruction="%1$s is the folder name">Záložku jsme přidali do složky %1$s</string>
+    <string name="addToFavorites">Přidat do oblíbených</string>
+    <string name="editBookmark">Upravit záložku</string>
+    <string name="importBookmarksDescription">Pokud máš záložky uložené v jiném prohlížeči, \nmůžeš je importovat do DuckDuckGo.</string>
+    <string name="importBookmarks">Importovat záložky</string>
+    <string name="noResultsFor" instruction="%1$s is the search term">Žádné výsledky pro dotaz „%1$s“</string>
+    <string name="removeFromFavorites">Smazat z oblíbených</string>
+    <string name="addToFavoritesMenu">Přidat do oblíbených</string>
+    <plurals name="bookmarkFolderDeleteMessage">
+        <item quantity="one">Opravdu chceš smazat tuhle složku a %1$d položku?</item>
+        <item quantity="few">Opravdu chceš smazat tuhle složku a %1$d položky?</item>
+        <item quantity="many">Opravdu chceš smazat tuhle složku a %1$d položky?</item>
+        <item quantity="other">Opravdu chceš smazat tuhle složku a %1$d položek?</item>
+    </plurals>
+    <string name="deleteBookmarkConfirmationDescription" instruction="Placeholder is the name of the bookmark">Opravdu chceš smazat záložku &lt;b&gt;%1$s&lt;/b&gt;?</string>
+
+    <!-- Sync Favicons -->
+    <string name="sync_fetch_icons_title">Načíst ikony záložek</string>
+    <string name="sync_fetch_icons_subtitle">Automatické stahování ikon synchronizovaných záložek.</string>
+    <string name="faviconsPromptTitle">Stáhnout chybějící ikony?</string>
+    <string name="faviconsPromptMessage">Chceš, aby tohle zařízení automaticky stahovalo ikony webů, které máš v záložkách?</string>
+    <string name="faviconsPromptPrimaryCta">Nechat ikony záložek aktualizované</string>
+    <string name="faviconsPromptSecondaryCta">Teď ne</string>
 </resources>

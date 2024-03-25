@@ -17,6 +17,8 @@
 package com.duckduckgo.subscriptions.impl.ui
 
 import android.os.Bundle
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -27,22 +29,23 @@ import com.duckduckgo.common.ui.view.dialog.TextAlertDialogBuilder
 import com.duckduckgo.common.ui.viewbinding.viewBinding
 import com.duckduckgo.di.scopes.ActivityScope
 import com.duckduckgo.navigation.api.GlobalActivityStarter
+import com.duckduckgo.navigation.api.getActivityParams
 import com.duckduckgo.subscriptions.impl.R.string
+import com.duckduckgo.subscriptions.impl.SubscriptionsConstants.ACTIVATE_URL
 import com.duckduckgo.subscriptions.impl.SubscriptionsConstants.BUY_URL
 import com.duckduckgo.subscriptions.impl.databinding.ActivityRestoreSubscriptionBinding
-import com.duckduckgo.subscriptions.impl.ui.RestoreSubscriptionActivity.Companion.RestoreSubscriptionScreenWithEmptyParams
+import com.duckduckgo.subscriptions.impl.ui.RestoreSubscriptionActivity.Companion.RestoreSubscriptionScreenWithParams
 import com.duckduckgo.subscriptions.impl.ui.RestoreSubscriptionViewModel.Command
 import com.duckduckgo.subscriptions.impl.ui.RestoreSubscriptionViewModel.Command.Error
 import com.duckduckgo.subscriptions.impl.ui.RestoreSubscriptionViewModel.Command.RestoreFromEmail
 import com.duckduckgo.subscriptions.impl.ui.RestoreSubscriptionViewModel.Command.SubscriptionNotFound
 import com.duckduckgo.subscriptions.impl.ui.RestoreSubscriptionViewModel.Command.Success
-import com.duckduckgo.subscriptions.impl.ui.SubscriptionSettingsActivity.Companion.SubscriptionsSettingsScreenWithEmptyParams
 import javax.inject.Inject
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 @InjectWith(ActivityScope::class)
-@ContributeToActivityStarter(RestoreSubscriptionScreenWithEmptyParams::class)
+@ContributeToActivityStarter(RestoreSubscriptionScreenWithParams::class)
 class RestoreSubscriptionActivity : DuckDuckGoActivity() {
 
     @Inject
@@ -51,11 +54,16 @@ class RestoreSubscriptionActivity : DuckDuckGoActivity() {
     private val viewModel: RestoreSubscriptionViewModel by bindViewModel()
     private val binding: ActivityRestoreSubscriptionBinding by viewBinding()
 
+    private var isOriginWeb = true
     private val toolbar
         get() = binding.includeToolbar.toolbar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val params = intent.getActivityParams(RestoreSubscriptionScreenWithParams::class.java)
+        isOriginWeb = params?.isOriginWeb ?: true
+
         setContentView(binding.root)
         setupToolbar(toolbar)
 
@@ -64,23 +72,40 @@ class RestoreSubscriptionActivity : DuckDuckGoActivity() {
             .onEach { processCommand(it) }
             .launchIn(lifecycleScope)
 
-        binding.googlePlay.setPrimaryButtonClickListener {
+        binding.googlePlay.setOnClickListener {
             viewModel.restoreFromStore()
         }
 
-        binding.email.setPrimaryButtonClickListener {
-            viewModel.restoreFromEmail()
+        with(binding.manageEmailCard) {
+            emailSubtitle.setText(string.restoreSubscriptionEmailDescription)
+            emailButton.setText(string.restoreSubscriptionEmailButton)
+            emailButton.setOnClickListener {
+                viewModel.restoreFromEmail()
+            }
         }
     }
 
-    private fun goToAddEmail() {
-        globalActivityStarter.start(
+    private val startForResultRestore = registerForActivityResult(StartActivityForResult()) { result: ActivityResult ->
+        if (result.resultCode == RESULT_OK) {
+            if (isOriginWeb) {
+                setResult(RESULT_OK)
+            } else {
+                goToSubscriptions()
+            }
+            finish()
+        }
+    }
+
+    private fun goToRestore() {
+        val intent = globalActivityStarter.startIntent(
             this,
             SubscriptionsWebViewActivityWithParams(
-                url = "https://abrown.duckduckgo.com/subscriptions/activate",
-                getString(string.addEmailText),
+                url = ACTIVATE_URL,
+                screenTitle = getString(string.addEmailText),
+                defaultToolbar = false,
             ),
         )
+        startForResultRestore.launch(intent)
     }
 
     private fun onPurchaseRestored() {
@@ -91,12 +116,27 @@ class RestoreSubscriptionActivity : DuckDuckGoActivity() {
             .addEventListener(
                 object : TextAlertDialogBuilder.EventListener() {
                     override fun onPositiveButtonClicked() {
-                        globalActivityStarter.start(this@RestoreSubscriptionActivity, SubscriptionsSettingsScreenWithEmptyParams)
+                        if (isOriginWeb) {
+                            setResult(RESULT_OK)
+                        } else {
+                            goToSubscriptions()
+                        }
                         finish()
                     }
                 },
             )
             .show()
+    }
+
+    private fun goToSubscriptions() {
+        globalActivityStarter.start(
+            this@RestoreSubscriptionActivity,
+            SubscriptionsWebViewActivityWithParams(
+                url = BUY_URL,
+                screenTitle = getString(string.buySubscriptionTitle),
+                defaultToolbar = true,
+            ),
+        )
     }
 
     private fun subscriptionNotFound() {
@@ -109,20 +149,17 @@ class RestoreSubscriptionActivity : DuckDuckGoActivity() {
             .addEventListener(
                 object : TextAlertDialogBuilder.EventListener() {
                     override fun onPositiveButtonClicked() {
-                        globalActivityStarter.start(
-                            this@RestoreSubscriptionActivity,
-                            SubscriptionsWebViewActivityWithParams(url = BUY_URL, "Buy Subscription"),
-                        )
+                        goToSubscriptions()
                     }
                 },
             )
             .show()
     }
 
-    private fun showError(message: String) {
+    private fun showError() {
         TextAlertDialogBuilder(this)
             .setTitle(string.somethingWentWrong)
-            .setMessage(message)
+            .setMessage(string.somethingWentWrongDescription)
             .setDestructiveButtons(false)
             .setPositiveButton(string.ok)
             .show()
@@ -130,13 +167,13 @@ class RestoreSubscriptionActivity : DuckDuckGoActivity() {
 
     private fun processCommand(command: Command) {
         when (command) {
-            is RestoreFromEmail -> goToAddEmail()
+            is RestoreFromEmail -> goToRestore()
             is Success -> onPurchaseRestored()
             is SubscriptionNotFound -> subscriptionNotFound()
-            is Error -> showError(command.message)
+            is Error -> showError()
         }
     }
     companion object {
-        object RestoreSubscriptionScreenWithEmptyParams : GlobalActivityStarter.ActivityParams
+        data class RestoreSubscriptionScreenWithParams(val isOriginWeb: Boolean = true) : GlobalActivityStarter.ActivityParams
     }
 }

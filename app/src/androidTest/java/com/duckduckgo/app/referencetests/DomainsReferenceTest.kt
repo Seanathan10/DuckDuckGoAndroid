@@ -65,7 +65,6 @@ import com.duckduckgo.user.agent.api.UserAgentProvider
 import com.duckduckgo.user.agent.impl.RealUserAgentProvider
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestScope
 import org.json.JSONObject
@@ -79,11 +78,9 @@ import org.junit.runners.Parameterized
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-@ExperimentalCoroutinesApi
 @RunWith(Parameterized::class)
 class DomainsReferenceTest(private val testCase: TestCase) {
 
-    @ExperimentalCoroutinesApi
     @get:Rule
     var coroutinesTestRule = CoroutineTestRule()
 
@@ -197,7 +194,7 @@ class DomainsReferenceTest(private val testCase: TestCase) {
 
         val response = testee.shouldIntercept(
             request = mockRequest,
-            documentUrl = testCase.siteURL,
+            documentUri = testCase.siteURL.toUri(),
             webView = webView,
             webViewClientListener = null,
         )
@@ -242,7 +239,7 @@ class DomainsReferenceTest(private val testCase: TestCase) {
         val entities = tdsJson.jsonToEntities()
         val domainEntities = tdsJson.jsonToDomainEntities()
         val cnameEntities = tdsJson.jsonToCnameEntities()
-        val client = TdsClient(Client.ClientName.TDS, trackers, RealUrlToTypeMapper())
+        val client = TdsClient(Client.ClientName.TDS, trackers, RealUrlToTypeMapper(), false)
 
         tdsEntityDao.insertAll(entities)
         tdsDomainEntityDao.insertAll(domainEntities)

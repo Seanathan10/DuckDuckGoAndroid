@@ -26,7 +26,6 @@ import com.duckduckgo.common.test.CoroutineTestRule
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -36,7 +35,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.MockitoAnnotations
 
-@ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
 class UserAllowListRepositoryTest {
 
@@ -59,7 +57,7 @@ class UserAllowListRepositoryTest {
             .allowMainThreadQueries()
             .build()
         dao = db.userAllowListDao()
-        repository = RealUserAllowListRepository(dao, TestScope(), coroutineRule.testDispatcherProvider)
+        repository = RealUserAllowListRepository(dao, TestScope(), coroutineRule.testDispatcherProvider, isMainProcess = true)
     }
 
     @After

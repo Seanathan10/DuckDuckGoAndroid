@@ -19,9 +19,9 @@ package com.duckduckgo.installation.impl.installer
 import androidx.lifecycle.LifecycleOwner
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.duckduckgo.app.statistics.pixels.Pixel
+import com.duckduckgo.app.statistics.pixels.Pixel.PixelType.COUNT
 import com.duckduckgo.common.test.CoroutineTestRule
 import com.duckduckgo.installation.impl.installer.InstallationPixelName.APP_INSTALLER_PACKAGE_NAME
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -33,7 +33,6 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.robolectric.RuntimeEnvironment
 
-@ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
 class InstallSourceLifecycleObserverTest {
 
@@ -56,13 +55,13 @@ class InstallSourceLifecycleObserverTest {
     @Test
     fun whenNotPreviouslyProcessedThenPixelSent() = runTest {
         testee.onCreate(mockLifecycleOwner)
-        verify(mockPixel).fire(eq(APP_INSTALLER_PACKAGE_NAME), any(), any())
+        verify(mockPixel).fire(eq(APP_INSTALLER_PACKAGE_NAME), any(), any(), eq(COUNT))
     }
 
     @Test
     fun whenPreviouslyProcessedThenPixelNotSent() = runTest {
         testee.recordInstallSourceProcessed()
         testee.onCreate(mockLifecycleOwner)
-        verify(mockPixel, never()).fire(eq(APP_INSTALLER_PACKAGE_NAME), any(), any())
+        verify(mockPixel, never()).fire(eq(APP_INSTALLER_PACKAGE_NAME), any(), any(), eq(COUNT))
     }
 }

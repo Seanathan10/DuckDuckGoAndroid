@@ -24,10 +24,8 @@ import com.duckduckgo.app.pixels.AppPixelName
 import com.duckduckgo.app.statistics.pixels.Pixel
 import com.duckduckgo.appbuildconfig.api.AppBuildConfig
 import com.duckduckgo.common.test.CoroutineTestRule
-import com.duckduckgo.experiments.api.VariantManager
 import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist
 import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitlistState.NotUnlocked
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -42,7 +40,6 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-@OptIn(ExperimentalCoroutinesApi::class)
 internal class AboutDuckDuckGoViewModelTest {
     @get:Rule
     @Suppress("unused")
@@ -57,9 +54,6 @@ internal class AboutDuckDuckGoViewModelTest {
     private lateinit var mockAppBuildConfig: AppBuildConfig
 
     @Mock
-    private lateinit var mockVariantManager: VariantManager
-
-    @Mock
     private lateinit var mockPixel: Pixel
 
     @Mock
@@ -69,7 +63,6 @@ internal class AboutDuckDuckGoViewModelTest {
     fun before() {
         MockitoAnnotations.openMocks(this)
 
-        whenever(mockVariantManager.getVariantKey()).thenReturn("")
         whenever(mockAppBuildConfig.versionName).thenReturn("name")
         whenever(mockAppBuildConfig.versionCode).thenReturn(1)
         runBlocking {
@@ -79,7 +72,6 @@ internal class AboutDuckDuckGoViewModelTest {
         testee = AboutDuckDuckGoViewModel(
             networkProtectionWaitlist,
             mockAppBuildConfig,
-            mockVariantManager,
             mockPixel,
         )
     }

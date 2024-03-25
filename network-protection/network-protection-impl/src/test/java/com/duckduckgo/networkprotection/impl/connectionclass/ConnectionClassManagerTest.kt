@@ -2,14 +2,12 @@ package com.duckduckgo.networkprotection.impl.connectionclass
 
 import com.duckduckgo.common.test.CoroutineTestRule
 import com.duckduckgo.mobile.android.vpn.prefs.FakeVpnSharedPreferencesProvider
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class ConnectionClassManagerTest {
 
     @get:Rule
@@ -83,10 +81,11 @@ class ConnectionClassManagerTest {
     fun addLatencyThenCalculateRunningAverage() = runTest {
         val expected = ExponentialGeometricAverage()
 
-        for (i in 0..20 step 1) {
+        for (i in 0..2000 step 1) {
             connectionClassManager.addLatency(i.toDouble())
             expected.addMeasurement(i.toDouble())
             assertEquals(expected.average, connectionClassManager.getLatencyAverage(), 0.0)
+            assertEquals(expected.average.asConnectionQuality(), connectionClassManager.getConnectionQuality())
         }
     }
 }

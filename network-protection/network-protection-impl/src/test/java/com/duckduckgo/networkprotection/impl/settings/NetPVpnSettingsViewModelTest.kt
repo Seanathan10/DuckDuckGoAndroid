@@ -6,7 +6,6 @@ import com.duckduckgo.common.test.CoroutineTestRule
 import com.duckduckgo.feature.toggles.api.Toggle
 import com.duckduckgo.networkprotection.api.NetworkProtectionState
 import com.duckduckgo.networkprotection.impl.settings.geoswitching.DisplayablePreferredLocationProvider
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -17,14 +16,12 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 class NetPVpnSettingsViewModelTest {
     @get:Rule
     var coroutineRule = CoroutineTestRule()
 
     private val networkProtectionState = mock<NetworkProtectionState>()
-    private lateinit var locationProvider: FakeDisplayablePreferredLocationProvider
     private lateinit var netPSettingsLocalConfig: NetPSettingsLocalConfig
     private var isIgnoringBatteryOptimizations: Boolean = false
 
@@ -34,15 +31,12 @@ class NetPVpnSettingsViewModelTest {
     fun setup() {
         isIgnoringBatteryOptimizations = false
         netPSettingsLocalConfig = FakeNetPSettingsLocalConfigFactory.create()
-        locationProvider = FakeDisplayablePreferredLocationProvider()
 
         viewModel = NetPVpnSettingsViewModel(
             coroutineRule.testDispatcherProvider,
-            locationProvider,
             netPSettingsLocalConfig,
             networkProtectionState,
-            { isIgnoringBatteryOptimizations },
-        )
+        ) { isIgnoringBatteryOptimizations }
     }
 
     @Test
@@ -68,7 +62,7 @@ class NetPVpnSettingsViewModelTest {
         viewModel.viewState().test {
             viewModel.onStart(mock())
 
-            assertEquals(NetPVpnSettingsViewModel.ViewState(null, false), awaitItem())
+            assertEquals(NetPVpnSettingsViewModel.ViewState(false), awaitItem())
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -76,13 +70,12 @@ class NetPVpnSettingsViewModelTest {
     @Test
     fun onStartEmitCorrectState() = runTest {
         viewModel.viewState().test {
-            locationProvider.location = "location"
             netPSettingsLocalConfig.vpnExcludeLocalNetworkRoutes().setEnabled(Toggle.State(remoteEnableState = true))
 
             viewModel.onStart(mock())
 
-            assertEquals(NetPVpnSettingsViewModel.ViewState(null, false), awaitItem())
-            assertEquals(NetPVpnSettingsViewModel.ViewState(locationProvider.location, true), awaitItem())
+            assertEquals(NetPVpnSettingsViewModel.ViewState(false), awaitItem())
+            assertEquals(NetPVpnSettingsViewModel.ViewState(true), awaitItem())
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -90,13 +83,11 @@ class NetPVpnSettingsViewModelTest {
     @Test
     fun onExcludeLocalRoutesEmitsCorrectState() = runTest {
         viewModel.viewState().test {
-            locationProvider.location = "location"
-
             viewModel.onExcludeLocalRoutes(false)
-            assertEquals(NetPVpnSettingsViewModel.ViewState(null, false), awaitItem())
+            assertEquals(NetPVpnSettingsViewModel.ViewState(false), awaitItem())
 
             viewModel.onExcludeLocalRoutes(true)
-            assertEquals(NetPVpnSettingsViewModel.ViewState(null, true), awaitItem())
+            assertEquals(NetPVpnSettingsViewModel.ViewState(true), awaitItem())
             cancelAndIgnoreRemainingEvents()
         }
     }

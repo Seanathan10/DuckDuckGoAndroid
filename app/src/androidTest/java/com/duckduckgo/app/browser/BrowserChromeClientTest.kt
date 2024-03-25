@@ -20,6 +20,7 @@ package com.duckduckgo.app.browser
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.net.Uri
 import android.os.Message
 import android.view.View
@@ -27,6 +28,7 @@ import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebView
+import androidx.core.graphics.get
 import androidx.core.net.toUri
 import androidx.test.annotation.UiThreadTest
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
@@ -34,8 +36,8 @@ import com.duckduckgo.appbuildconfig.api.AppBuildConfig
 import com.duckduckgo.common.test.CoroutineTestRule
 import com.duckduckgo.site.permissions.api.SitePermissionsManager
 import com.duckduckgo.site.permissions.api.SitePermissionsManager.SitePermissions
+import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -43,7 +45,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.*
 
-@ExperimentalCoroutinesApi
 class BrowserChromeClientTest {
 
     private lateinit var testee: BrowserChromeClient
@@ -58,7 +59,6 @@ class BrowserChromeClientTest {
     @get:Rule
     val coroutineTestRule = CoroutineTestRule()
 
-    @ExperimentalCoroutinesApi
     @UiThreadTest
     @Before
     fun setup() {
@@ -182,7 +182,6 @@ class BrowserChromeClientTest {
         verify(mockFilePathCallback).onReceiveValue(null)
     }
 
-    @ExperimentalCoroutinesApi
     @Test
     fun whenOnMediaPermissionRequestIfDomainIsAllowToAskThenRequestPermission() = runTest {
         val permissions = SitePermissions(
@@ -199,7 +198,6 @@ class BrowserChromeClientTest {
         verify(mockWebViewClientListener).onSitePermissionRequested(mockPermission, permissions)
     }
 
-    @ExperimentalCoroutinesApi
     @Test
     fun whenOnCameraPermissionRequestIfDomainIsAllowToAskThenRequestPermission() = runTest {
         val permissions = SitePermissions(
@@ -217,7 +215,6 @@ class BrowserChromeClientTest {
         verify(mockWebViewClientListener).onSitePermissionRequested(mockRequest, permissions)
     }
 
-    @ExperimentalCoroutinesApi
     @Test
     fun whenOnMicPermissionRequestIfDomainIsAllowToAskThenRequestPermission() = runTest {
         val permissions = SitePermissions(
@@ -235,7 +232,6 @@ class BrowserChromeClientTest {
         verify(mockWebViewClientListener).onSitePermissionRequested(mockRequest, permissions)
     }
 
-    @ExperimentalCoroutinesApi
     @Test
     fun whenNotSitePermissionsAreRequestedThenCallOnSitePermissionRequested() = runTest {
         val permissions = SitePermissions(emptyList(), emptyList())
@@ -248,6 +244,15 @@ class BrowserChromeClientTest {
         testee.onPermissionRequest(mockRequest)
 
         verify(mockWebViewClientListener, never()).onSitePermissionRequested(mockRequest, permissions)
+    }
+
+    @Test
+    fun whenGetDefaultVideoPosterThenReturnTransparentPixel() = runTest {
+        val bitmap = testee.defaultVideoPoster
+
+        assertEquals(1, bitmap.width)
+        assertEquals(1, bitmap.height)
+        assertEquals(Color.TRANSPARENT, bitmap[0, 0])
     }
 
     private val mockMsg = Message().apply {

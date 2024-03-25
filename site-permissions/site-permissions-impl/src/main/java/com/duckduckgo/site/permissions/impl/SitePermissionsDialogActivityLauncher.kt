@@ -26,7 +26,6 @@ import android.webkit.PermissionRequest
 import androidx.activity.result.ActivityResultCaller
 import androidx.annotation.StringRes
 import androidx.core.net.toUri
-import com.duckduckgo.app.browser.favicon.FaviconManager
 import com.duckduckgo.app.di.AppCoroutineScope
 import com.duckduckgo.common.ui.view.addClickableLink
 import com.duckduckgo.common.ui.view.dialog.TextAlertDialogBuilder
@@ -67,9 +66,6 @@ class SitePermissionsDialogActivityLauncher @Inject constructor(
     private var siteURL: String = ""
     private var tabId: String = ""
 
-    @Inject
-    lateinit var faviconManager: FaviconManager
-
     override fun registerPermissionLauncher(caller: ActivityResultCaller) {
         systemPermissionsHelper.registerPermissionLaunchers(
             caller,
@@ -107,7 +103,7 @@ class SitePermissionsDialogActivityLauncher @Inject constructor(
                 showSitePermissionsRationaleDialog(R.string.sitePermissionsCameraDialogTitle, url, this::askForCameraPermissions)
             }
             permissionsHandledByUser.contains(PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID) -> {
-                showSiteDrmPermissionsDialog(activity, url, tabId)
+                showSiteDrmPermissionsDialog(activity, url)
             }
         }
     }
@@ -138,7 +134,6 @@ class SitePermissionsDialogActivityLauncher @Inject constructor(
     private fun showSiteDrmPermissionsDialog(
         activity: Activity,
         url: String,
-        tabId: String,
     ) {
         val domain = url.extractDomain() ?: url
 
@@ -146,7 +141,7 @@ class SitePermissionsDialogActivityLauncher @Inject constructor(
         val sessionSetting = sitePermissionsRepository.getDrmForSession(domain)
         if (sessionSetting != null) {
             if (sessionSetting) {
-                systemPermissionGranted()
+                grantPermissions()
             } else {
                 denyPermissions()
             }
@@ -163,6 +158,10 @@ class SitePermissionsDialogActivityLauncher @Inject constructor(
         val binding = ContentSiteDrmPermissionDialogBinding.inflate(activity.layoutInflater)
         val dialog = MaterialAlertDialogBuilder(activity)
             .setView(binding.root)
+            .setOnCancelListener {
+                // Called when user clicks outside the dialog - deny to be safe
+                denyPermissions()
+            }
             .create()
 
         val title = url.websiteFromGeoLocationsApiOrigin()
@@ -176,19 +175,15 @@ class SitePermissionsDialogActivityLauncher @Inject constructor(
             activity.startActivity(Intent(Intent.ACTION_VIEW, DRM_LEARN_MORE_URL))
         }
 
-        appCoroutineScope.launch(dispatcher.main()) {
-            faviconManager.loadToViewFromLocalWithPlaceholder(tabId, url, binding.sitePermissionDialogFavicon)
-        }
-
         binding.siteAllowAlwaysDrmPermission.setOnClickListener {
-            systemPermissionGranted()
+            grantPermissions()
             onSiteDrmPermissionSave(domain, SitePermissionAskSettingType.ALLOW_ALWAYS)
             dialog.dismiss()
         }
 
         binding.siteAllowOnceDrmPermission.setOnClickListener {
             sitePermissionsRepository.saveDrmForSession(domain, true)
-            systemPermissionGranted()
+            grantPermissions()
             dialog.dismiss()
         }
 
@@ -283,9 +278,13 @@ class SitePermissionsDialogActivityLauncher @Inject constructor(
         }
     }
 
-    private fun systemPermissionGranted() {
+    private fun grantPermissions() {
         val permissions = permissionsHandledAutomatically.toTypedArray() + permissionsHandledByUser
         sitePermissionRequest.grant(permissions)
+    }
+
+    private fun systemPermissionGranted() {
+        grantPermissions()
         permissionsHandledByUser.forEach {
             sitePermissionsRepository.sitePermissionGranted(siteURL, tabId, it)
         }

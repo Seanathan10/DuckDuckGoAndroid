@@ -23,11 +23,11 @@ import com.duckduckgo.app.notification.model.SchedulableNotificationPlugin
 import com.duckduckgo.app.pixels.AppPixelName
 import com.duckduckgo.app.settings.db.SettingsDataStore
 import com.duckduckgo.app.statistics.pixels.Pixel
+import com.duckduckgo.app.statistics.pixels.Pixel.PixelType.COUNT
 import com.duckduckgo.appbuildconfig.api.AppBuildConfig
 import com.duckduckgo.common.test.CoroutineTestRule
 import com.duckduckgo.common.utils.plugins.PluginPoint
 import com.duckduckgo.experiments.api.VariantManager
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import org.junit.Before
 import org.junit.Rule
@@ -39,7 +39,6 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
-@ExperimentalCoroutinesApi
 class NotificationRegistrarTest {
     @get:Rule
     val coroutineRule = CoroutineTestRule()
@@ -77,7 +76,7 @@ class NotificationRegistrarTest {
     fun whenNotificationsPreviouslyOffAndNowOnThenPixelIsFiredAndSettingsUpdated() {
         whenever(mockSettingsDataStore.appNotificationsEnabled).thenReturn(false)
         testee.updateStatus(true)
-        verify(mockPixel).fire(eq(AppPixelName.NOTIFICATIONS_ENABLED), any(), any())
+        verify(mockPixel).fire(eq(AppPixelName.NOTIFICATIONS_ENABLED), any(), any(), eq(COUNT))
         verify(mockSettingsDataStore).appNotificationsEnabled = true
     }
 
@@ -85,7 +84,7 @@ class NotificationRegistrarTest {
     fun whenNotificationsPreviouslyOffAndStillOffThenNoPixelIsFiredAndSettingsUnchanged() {
         whenever(mockSettingsDataStore.appNotificationsEnabled).thenReturn(false)
         testee.updateStatus(false)
-        verify(mockPixel, never()).fire(any<Pixel.PixelName>(), any(), any())
+        verify(mockPixel, never()).fire(any<Pixel.PixelName>(), any(), any(), eq(COUNT))
         verify(mockSettingsDataStore, never()).appNotificationsEnabled = true
     }
 
@@ -93,7 +92,7 @@ class NotificationRegistrarTest {
     fun whenNotificationsPreviouslyOnAndStillOnThenNoPixelIsFiredAndSettingsUnchanged() {
         whenever(mockSettingsDataStore.appNotificationsEnabled).thenReturn(true)
         testee.updateStatus(true)
-        verify(mockPixel, never()).fire(any<Pixel.PixelName>(), any(), any())
+        verify(mockPixel, never()).fire(any<Pixel.PixelName>(), any(), any(), eq(COUNT))
         verify(mockSettingsDataStore, never()).appNotificationsEnabled = false
     }
 
@@ -101,7 +100,7 @@ class NotificationRegistrarTest {
     fun whenNotificationsPreviouslyOnAndNowOffPixelIsFiredAndSettingsUpdated() {
         whenever(mockSettingsDataStore.appNotificationsEnabled).thenReturn(true)
         testee.updateStatus(false)
-        verify(mockPixel).fire(eq(AppPixelName.NOTIFICATIONS_DISABLED), any(), any())
+        verify(mockPixel).fire(eq(AppPixelName.NOTIFICATIONS_DISABLED), any(), any(), eq(COUNT))
         verify(mockSettingsDataStore).appNotificationsEnabled = false
     }
 }

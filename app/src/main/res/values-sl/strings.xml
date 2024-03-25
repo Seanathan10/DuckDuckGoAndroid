@@ -150,7 +150,6 @@
     <string name="settingsWebTrackingProtectionDescription">Privzeto omogočeno</string>
     <string name="settingsHeadingSettings">Nastavitve</string>
     <string name="settingsPermissionsSetting">Dovoljenja</string>
-    <string name="settingsAutofillLoginsSetting">Prijave</string>
     <string name="settingsSyncSetting">Sinhronizacija in varnostno kopiranje</string>
     <string name="settingsFireButton">Gumb Fire Button</string>
 
@@ -503,7 +502,6 @@
     <string name="onboardingFeatureOptionOneClickDataClearing">Izbris podatkov na en klik</string>
 
     <!-- Download Confirmation -->
-    <string name="downloadConfirmationContinue">Shrani med prenose</string>
     <string name="downloadConfirmationSaveFileTitle" instruction="Placeholder is the name of a file">Shrani %1$s</string>
     <string name="downloadConfirmationKeepBothFilesText">Ohrani oba</string>
     <string name="downloadConfirmationReplaceOldFileText">Zamenjaj</string>
@@ -638,8 +636,6 @@
 
     <!-- Autofill -->
     <string name="autofillSnackbarAction" instruction="Label for a button that lets the user view the details for a login credential">Oglejte si</string>
-    <string name="autofillLoginSavedSnackbarMessage">Prijava shranjena</string>
-    <string name="autofillLoginUpdatedSnackbarMessage">Prijava posodobljena</string>
 
     <!-- Waitlist Notification -->
     <string name="waitlistNotificationDialogDescription">Želite, da vam pošljemo obvestilo, ko ste na vrsti?</string>
@@ -784,4 +780,47 @@
     <!-- Private voice search -->
     <string name="accessibilityVoiceSearchSubtitle">Dodajte možnost zasebnega glasovnega iskanja v naslovno vrstico. Zvok ni shranjen ali posredovan nikomur niti DuckDuckGo.</string>
     <string name="accessibilityVoiceSearchTitle">Zasebno glasovno iskanje</string>
+
+    <!-- Uploading an image from the camera or choosing to use existing image -->
+    <string name="imageCaptureCameraUnavailable">Ni bilo mogoče dostopati do kamere</string>
+    <string name="imageCaptureCameraGalleryDisambiguationTitle">Naložite sliko</string>
+    <string name="imageCaptureCameraGalleryDisambiguationGalleryOption">Izberite datoteko</string>
+    <string name="imageCaptureCameraGalleryDisambiguationCameraOption">Posnemite fotografijo</string>
+    <string name="imageCaptureCameraPermissionDeniedTitle">Dovolite, da lahko spletno mesto DuckDuckGo zahteva dostop do kamere v tej napravi</string>
+    <string name="imageCaptureCameraPermissionDeniedMessage">Spletna mesta lahko uporabljajo vašo kamero le, če dovolite, da DuckDuckGo zaprosi za dostop.</string>
+    <string name="imageCaptureCameraPermissionDeniedPositiveButton">Odpri nastavitve</string>
+    <string name="imageCaptureCameraPermissionDeniedNegativeButton">Prekliči</string>
+
+    <!-- Autofill -->
+    <string name="settingsAutofillLoginsSetting">Gesla</string>
+    <string name="autofillLoginSavedSnackbarMessage">Geslo je shranjeno</string>
+    <string name="autofillLoginUpdatedSnackbarMessage">Geslo je posodobljeno</string>
+
+    <!-- Bookmarks -->
+    <string name="searchBookmarks">Iskanje zaznamkov</string>
+    <string name="deleteFolder" instruction="%1$s is the folder name">"Želite izbrisati mapo %1$s?"</string>
+    <string name="deleteBookmark" instruction="%1$s is the bookmark name">"Želite izbrisati zaznamek %1$s?"</string>
+    <string name="bookmarkAddedInBookmarks" instruction="%1$s is the folder name">Zaznamek je dodan v mapo %1$s</string>
+    <string name="addToFavorites">Dodaj med priljubljene</string>
+    <string name="editBookmark">Uredi zaznamek</string>
+    <string name="importBookmarksDescription">Če so zaznamki shranjeni v drugem brskalniku, jih lahko\nuvozite v DuckDuckGo.</string>
+    <string name="importBookmarks">Uvoz zaznamkov</string>
+    <string name="noResultsFor" instruction="%1$s is the search term">Ni rezultatov za »%1$s«</string>
+    <string name="removeFromFavorites">Odstranitev iz priljubljenih</string>
+    <string name="addToFavoritesMenu">Dodaj med priljubljene</string>
+    <plurals name="bookmarkFolderDeleteMessage">
+        <item quantity="one">Ali ste prepričani, da želite izbrisati to mapo in %1$d element?</item>
+        <item quantity="two">Ali ste prepričani, da želite izbrisati to mapo in %1$d elementa?</item>
+        <item quantity="few">Ali ste prepričani, da želite izbrisati to mapo in %1$d elemente?</item>
+        <item quantity="other">Ali ste prepričani, da želite izbrisati to mapo in %1$d elementov?</item>
+    </plurals>
+    <string name="deleteBookmarkConfirmationDescription" instruction="Placeholder is the name of the bookmark">Ali ste prepričani, da želite izbrisati zaznamek za &lt;b&gt;%1$s&lt;/b&gt;?</string>
+
+    <!-- Sync Favicons -->
+    <string name="sync_fetch_icons_title">Pridobivanje ikon zaznamkov</string>
+    <string name="sync_fetch_icons_subtitle">Samodejno prenesite ikone za sinhronizirane zaznamke.</string>
+    <string name="faviconsPromptTitle">Želite prenesti manjkajoče ikone?</string>
+    <string name="faviconsPromptMessage">Ali želite, da naprava samodejno prenese ikone za sinhronizirane zaznamke s spletnih mest z zaznamki?</string>
+    <string name="faviconsPromptPrimaryCta">Posodobi ikone zaznamkov</string>
+    <string name="faviconsPromptSecondaryCta">Ne zdaj</string>
 </resources>

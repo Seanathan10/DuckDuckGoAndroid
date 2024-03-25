@@ -150,7 +150,6 @@
     <string name="settingsWebTrackingProtectionDescription">Aktiverat som standard</string>
     <string name="settingsHeadingSettings">Inställningar</string>
     <string name="settingsPermissionsSetting">Behörigheter</string>
-    <string name="settingsAutofillLoginsSetting">Inloggningar</string>
     <string name="settingsSyncSetting">Synkronisering och säkerhetskopiering</string>
     <string name="settingsFireButton">Fire Button</string>
 
@@ -499,7 +498,6 @@
     <string name="onboardingFeatureOptionOneClickDataClearing">Datarensning med ett klick</string>
 
     <!-- Download Confirmation -->
-    <string name="downloadConfirmationContinue">Spara till Nerladdningar</string>
     <string name="downloadConfirmationSaveFileTitle" instruction="Placeholder is the name of a file">Spara %1$s</string>
     <string name="downloadConfirmationKeepBothFilesText">Behåll båda</string>
     <string name="downloadConfirmationReplaceOldFileText">Byt ut</string>
@@ -634,8 +632,6 @@
 
     <!-- Autofill -->
     <string name="autofillSnackbarAction" instruction="Label for a button that lets the user view the details for a login credential">Visa</string>
-    <string name="autofillLoginSavedSnackbarMessage">Inloggning sparad</string>
-    <string name="autofillLoginUpdatedSnackbarMessage">Inloggning uppdaterad</string>
 
     <!-- Waitlist Notification -->
     <string name="waitlistNotificationDialogDescription">Vill du att vi ska skicka ett meddelande när det är din tur?</string>
@@ -776,4 +772,45 @@
     <!-- Private voice search -->
     <string name="accessibilityVoiceSearchSubtitle">Lägg till alternativet privat röstsökning i adressfältet Ljud lagras inte och delas inte med någon, inte ens DuckDuckGo.</string>
     <string name="accessibilityVoiceSearchTitle">Privat röstsökning</string>
+
+    <!-- Uploading an image from the camera or choosing to use existing image -->
+    <string name="imageCaptureCameraUnavailable">Det gick inte att komma åt kameran</string>
+    <string name="imageCaptureCameraGalleryDisambiguationTitle">Ladda upp en bild</string>
+    <string name="imageCaptureCameraGalleryDisambiguationGalleryOption">Välj fil</string>
+    <string name="imageCaptureCameraGalleryDisambiguationCameraOption">Ta foto</string>
+    <string name="imageCaptureCameraPermissionDeniedTitle">Tillåt DuckDuckGo att be om kameraåtkomst på den här enheten</string>
+    <string name="imageCaptureCameraPermissionDeniedMessage">Webbplatser kan endast använda din kamera om du tillåter DuckDuckGo att be om åtkomst.</string>
+    <string name="imageCaptureCameraPermissionDeniedPositiveButton">Öppna inställningar</string>
+    <string name="imageCaptureCameraPermissionDeniedNegativeButton">Avbryt</string>
+
+    <!-- Autofill -->
+    <string name="settingsAutofillLoginsSetting">Lösenord</string>
+    <string name="autofillLoginSavedSnackbarMessage">Lösenord sparat</string>
+    <string name="autofillLoginUpdatedSnackbarMessage">Lösenordet har uppdaterats</string>
+
+    <!-- Bookmarks -->
+    <string name="searchBookmarks">Sök bokmärken</string>
+    <string name="deleteFolder" instruction="%1$s is the folder name">"Radera %1$s?"</string>
+    <string name="deleteBookmark" instruction="%1$s is the bookmark name">"Ta bort bokmärket %1$s?"</string>
+    <string name="bookmarkAddedInBookmarks" instruction="%1$s is the folder name">Bokmärke har lagts till i %1$s</string>
+    <string name="addToFavorites">Lägg till i favoriter</string>
+    <string name="editBookmark">Redigera bokmärke</string>
+    <string name="importBookmarksDescription">Går det att importera bokmärken som sparats i en \nannan webbläsare till DuckDuckGo?</string>
+    <string name="importBookmarks">Importera bokmärken</string>
+    <string name="noResultsFor" instruction="%1$s is the search term">Inga resultat för ”%1$s”</string>
+    <string name="removeFromFavorites">Ta bort från favoriter</string>
+    <string name="addToFavoritesMenu">Lägg till i favoriter</string>
+    <plurals name="bookmarkFolderDeleteMessage">
+        <item quantity="one">Är du säker på att du vill ta bort den här mappen och %1$d objekt?</item>
+        <item quantity="other">Är du säker på att du vill ta bort den här mappen och %1$d objekt?</item>
+    </plurals>
+    <string name="deleteBookmarkConfirmationDescription" instruction="Placeholder is the name of the bookmark">Är du säker på att du vill ta bort bokmärket för &lt;b&gt;%1$s&lt;/b&gt;?</string>
+
+    <!-- Sync Favicons -->
+    <string name="sync_fetch_icons_title">Hämta ikoner för bokmärken</string>
+    <string name="sync_fetch_icons_subtitle">Ladda automatiskt ner ikoner för dina synkroniserade bokmärken.</string>
+    <string name="faviconsPromptTitle">Ladda ner saknade ikoner?</string>
+    <string name="faviconsPromptMessage">Vill du att enheten automatiskt ska hämta ikoner för synkroniserade bokmärken från de bokmärkta webbplatserna?</string>
+    <string name="faviconsPromptPrimaryCta">Håll ikoner för bokmärken uppdaterade</string>
+    <string name="faviconsPromptSecondaryCta">Inte nu</string>
 </resources>

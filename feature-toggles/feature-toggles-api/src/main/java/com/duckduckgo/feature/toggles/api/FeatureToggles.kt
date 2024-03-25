@@ -92,8 +92,8 @@ class FeatureToggles private constructor(
             val isInternalAlwaysEnabledAnnotated: Boolean = runCatching {
                 method.getAnnotation(Toggle.InternalAlwaysEnabled::class.java)
             }.getOrNull() != null
-            val forcesDefaultVariant: Boolean = runCatching {
-                method.getAnnotation(Toggle.ForcesDefaultVariantIfNull::class.java)
+            val isExperiment: Boolean = runCatching {
+                method.getAnnotation(Toggle.Experiment::class.java)
             }.getOrNull() != null
 
             return ToggleImpl(
@@ -101,7 +101,7 @@ class FeatureToggles private constructor(
                 key = getToggleNameForMethod(method),
                 defaultValue = defaultValue,
                 isInternalAlwaysEnabled = isInternalAlwaysEnabledAnnotated,
-                forcesDefaultVariant = forcesDefaultVariant,
+                isExperiment = isExperiment,
                 appVersionProvider = appVersionProvider,
                 flavorNameProvider = flavorNameProvider,
                 appVariantProvider = appVariantProvider,
@@ -167,7 +167,7 @@ interface Toggle {
         val minSupportedVersion: Int? = null,
         val enabledOverrideValue: Boolean? = null,
         val rollout: List<Double>? = null,
-        val rolloutStep: Int? = null,
+        val rolloutThreshold: Double? = null,
         val targets: List<Target> = emptyList(),
     ) {
         data class Target(
@@ -200,13 +200,13 @@ interface Toggle {
     annotation class InternalAlwaysEnabled
 
     /**
-     * This annotation is optional and it should be used in feature flags that related to experimentation.
+     * This annotation should be used in feature flags that related to experimentation.
      * It will make the feature flag to set the default variant if [isEnabled] is called BEFORE any variant has been allocated.
-     * This annotation should be used ONLY in experiments that happen in the first (eg. onboarding) screens of the application.
+     * It will make the feature flag to consider the target variants during the [isEnabled] evaluation.
      */
     @Target(AnnotationTarget.FUNCTION)
     @Retention(AnnotationRetention.RUNTIME)
-    annotation class ForcesDefaultVariantIfNull
+    annotation class Experiment
 }
 
 internal class ToggleImpl constructor(
@@ -214,7 +214,7 @@ internal class ToggleImpl constructor(
     private val key: String,
     private val defaultValue: Boolean,
     private val isInternalAlwaysEnabled: Boolean,
-    private val forcesDefaultVariant: Boolean,
+    private val isExperiment: Boolean,
     private val appVersionProvider: () -> Int,
     private val flavorNameProvider: () -> String = { "" },
     private val appVariantProvider: () -> String?,
@@ -231,25 +231,28 @@ internal class ToggleImpl constructor(
     }
 
     override fun isEnabled(): Boolean {
-        fun evaluateLocalEnable(state: State): Boolean {
+        fun evaluateLocalEnable(state: State, isExperiment: Boolean): Boolean {
+            // variants are only considered for Experiment feature flags
+            val isVariantTreated = if (isExperiment) state.isVariantTreated(appVariantProvider.invoke()) else true
+
             return state.enable &&
-                state.isVariantTreated(appVariantProvider.invoke()) &&
+                isVariantTreated &&
                 appVersionProvider.invoke() >= (state.minSupportedVersion ?: 0)
         }
         // check if it should always be enabled for internal builds
         if (isInternalAlwaysEnabled && flavorNameProvider.invoke().lowercase() == "internal") {
             return true
         }
-        // If there's not assigned variant yet and feature forces default variant, set default variant
-        if (appVariantProvider.invoke() == null && forcesDefaultVariant) {
+        // If there's not assigned variant yet and is an experiment feature, set default variant
+        if (appVariantProvider.invoke() == null && isExperiment) {
             forceDefaultVariant.invoke()
         }
 
         // normal check
         return store.get(key)?.let { state ->
             state.remoteEnableState?.let { remoteState ->
-                remoteState && evaluateLocalEnable(state)
-            } ?: evaluateLocalEnable(state)
+                remoteState && evaluateLocalEnable(state, isExperiment)
+            } ?: evaluateLocalEnable(state, isExperiment)
         } ?: return defaultValue
     }
 
@@ -282,13 +285,17 @@ internal class ToggleImpl constructor(
     }
 
     private fun calculateRolloutState(
-        state: State,
+        inputState: State,
     ): State {
-        fun sample(probability: Double): Boolean {
-            val random = Random.nextDouble(100.0)
-            return random < probability
+        fun checkAndSetRolloutThreshold(state: State): State {
+            if (state.rolloutThreshold == null) {
+                val random = Random.nextDouble(100.0)
+                return state.copy(rolloutThreshold = random)
+            }
+            return state
         }
-        val rolloutStep = state.rolloutStep
+
+        val state = checkAndSetRolloutThreshold(inputState)
 
         // there is no rollout, return whatever the previous state was
         if (state.rollout.isNullOrEmpty()) {
@@ -300,39 +307,11 @@ internal class ToggleImpl constructor(
             } ?: state
         }
 
-        val sortedRollout = state.rollout.sorted().filter { it in 0.0..100.0 }
-        if (sortedRollout.isEmpty()) return state
+        val scopedRolloutRange = state.rollout.filter { it in 0.0..100.0 }
+        if (scopedRolloutRange.isEmpty()) return state
 
-        when (rolloutStep) {
-            // first time we see the rollout, pick the last step
-            null -> {
-                val step = sortedRollout.last()
-                val isEnabled = sample(step.toDouble())
-                return state.copy(
-                    enable = isEnabled,
-                    rolloutStep = sortedRollout.size,
-                )
-            }
-            // this is an error and should not happen, don't change state
-            0 -> {
-                return state
-            }
-            else -> {
-                val steps = sortedRollout.size
-                val lastStep = state.rolloutStep
-
-                for (s in lastStep until steps) {
-                    // determine effective probability
-                    val probability = (sortedRollout[s] - sortedRollout[s - 1]) / (100.0 - sortedRollout[s - 1])
-                    if (sample(probability * 100.0)) {
-                        return state.copy(
-                            enable = true,
-                            rolloutStep = s + 1,
-                        )
-                    }
-                }
-                return state.copy(rolloutStep = sortedRollout.size)
-            }
-        }
+        return state.copy(
+            enable = (state.rolloutThreshold ?: 0.0) <= scopedRolloutRange.last(),
+        )
     }
 }

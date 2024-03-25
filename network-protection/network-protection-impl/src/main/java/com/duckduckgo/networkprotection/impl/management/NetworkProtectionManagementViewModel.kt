@@ -27,7 +27,6 @@ import com.duckduckgo.anvil.annotations.ContributesViewModel
 import com.duckduckgo.common.utils.ConflatedJob
 import com.duckduckgo.common.utils.DispatcherProvider
 import com.duckduckgo.di.scopes.ActivityScope
-import com.duckduckgo.mobile.android.vpn.VpnFeaturesRegistry
 import com.duckduckgo.mobile.android.vpn.network.ExternalVpnDetector
 import com.duckduckgo.mobile.android.vpn.state.VpnStateMonitor
 import com.duckduckgo.mobile.android.vpn.state.VpnStateMonitor.AlwaysOnState
@@ -41,13 +40,13 @@ import com.duckduckgo.mobile.android.vpn.state.VpnStateMonitor.VpnStopReason.ERR
 import com.duckduckgo.mobile.android.vpn.state.VpnStateMonitor.VpnStopReason.REVOKED
 import com.duckduckgo.mobile.android.vpn.ui.AppBreakageCategory
 import com.duckduckgo.mobile.android.vpn.ui.OpenVpnBreakageCategoryWithBrokenApp
+import com.duckduckgo.networkprotection.api.NetworkProtectionState
 import com.duckduckgo.networkprotection.impl.NetPVpnFeature
-import com.duckduckgo.networkprotection.impl.alerts.reconnect.NetPReconnectNotifications
+import com.duckduckgo.networkprotection.impl.configuration.WgTunnelConfig
+import com.duckduckgo.networkprotection.impl.configuration.asServerDetails
 import com.duckduckgo.networkprotection.impl.di.NetpBreakageCategories
 import com.duckduckgo.networkprotection.impl.management.NetworkProtectionManagementViewModel.AlertState.None
 import com.duckduckgo.networkprotection.impl.management.NetworkProtectionManagementViewModel.AlertState.ShowAlwaysOnLockdownEnabled
-import com.duckduckgo.networkprotection.impl.management.NetworkProtectionManagementViewModel.AlertState.ShowReconnecting
-import com.duckduckgo.networkprotection.impl.management.NetworkProtectionManagementViewModel.AlertState.ShowReconnectingFailed
 import com.duckduckgo.networkprotection.impl.management.NetworkProtectionManagementViewModel.AlertState.ShowRevoked
 import com.duckduckgo.networkprotection.impl.management.NetworkProtectionManagementViewModel.Command.CheckVPNPermission
 import com.duckduckgo.networkprotection.impl.management.NetworkProtectionManagementViewModel.Command.OpenVPNSettings
@@ -58,11 +57,13 @@ import com.duckduckgo.networkprotection.impl.management.NetworkProtectionManagem
 import com.duckduckgo.networkprotection.impl.management.NetworkProtectionManagementViewModel.ConnectionState.Disconnected
 import com.duckduckgo.networkprotection.impl.management.NetworkProtectionManagementViewModel.ConnectionState.Unknown
 import com.duckduckgo.networkprotection.impl.pixels.NetworkProtectionPixels
+import com.duckduckgo.networkprotection.impl.settings.geoswitching.getDisplayableCountry
+import com.duckduckgo.networkprotection.impl.settings.geoswitching.getEmojiForCountryCode
 import com.duckduckgo.networkprotection.impl.store.NetworkProtectionRepository
-import com.duckduckgo.networkprotection.impl.store.NetworkProtectionRepository.ReconnectStatus
-import com.duckduckgo.networkprotection.impl.store.NetworkProtectionRepository.ReconnectStatus.NotReconnecting
-import com.duckduckgo.networkprotection.impl.store.NetworkProtectionRepository.ReconnectStatus.Reconnecting
-import com.duckduckgo.networkprotection.impl.store.NetworkProtectionRepository.ReconnectStatus.ReconnectingFailed
+import com.duckduckgo.networkprotection.impl.volume.NetpDataVolumeStore
+import com.duckduckgo.networkprotection.store.NetPExclusionListRepository
+import com.duckduckgo.networkprotection.store.NetPGeoswitchingRepository
+import com.duckduckgo.networkprotection.store.NetPGeoswitchingRepository.UserPreferredLocation
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
@@ -76,16 +77,18 @@ import kotlinx.coroutines.withContext
 @ContributesViewModel(ActivityScope::class)
 class NetworkProtectionManagementViewModel @Inject constructor(
     private val vpnStateMonitor: VpnStateMonitor,
-    private val featuresRegistry: VpnFeaturesRegistry,
     private val networkProtectionRepository: NetworkProtectionRepository,
+    private val wgTunnelConfig: WgTunnelConfig,
     private val dispatcherProvider: DispatcherProvider,
-    private val reconnectNotifications: NetPReconnectNotifications,
     private val externalVpnDetector: ExternalVpnDetector,
     private val networkProtectionPixels: NetworkProtectionPixels,
     @NetpBreakageCategories private val netpBreakageCategories: List<AppBreakageCategory>,
+    private val networkProtectionState: NetworkProtectionState,
+    private val netPGeoswitchingRepository: NetPGeoswitchingRepository,
+    private val netpDataVolumeStore: NetpDataVolumeStore,
+    private val netPExclusionListRepository: NetPExclusionListRepository,
 ) : ViewModel(), DefaultLifecycleObserver {
 
-    private var reconnectStateFlow = MutableStateFlow(networkProtectionRepository.reconnectStatus)
     private val refreshVpnRunningState = MutableStateFlow(System.currentTimeMillis())
     private val connectionDetailsFlow = MutableStateFlow<ConnectionDetails?>(null)
     private val command = Channel<Command>(1, DROP_OLDEST)
@@ -93,28 +96,66 @@ class NetworkProtectionManagementViewModel @Inject constructor(
     private var isTimerTickRunning: Boolean = false
     private var timerTickJob = ConflatedJob()
     private var lastVpnRequestTime = -1L
+    private var excludedAppsCount: Int = 0
 
     internal fun commands(): Flow<Command> = command.receiveAsFlow()
 
     internal fun viewState(): Flow<ViewState> {
-        return combine(connectionDetailsFlow, getRunningState(), reconnectStateFlow) { connectionDetails, vpnState, reconnectState ->
+        return combine(connectionDetailsFlow, getRunningState()) { connectionDetails, vpnState ->
+            val preferredLocation = netPGeoswitchingRepository.getUserPreferredLocation()
             var connectionDetailsToEmit = connectionDetails
+            var locationState: LocationState? = connectionDetails?.toLocationState(preferredLocation.countryCode)
 
             if (vpnState.state == ENABLED && !isTimerTickRunning) {
                 startElapsedTimeTimer()
-            } else if (vpnState.state == DISABLED || vpnState.state == ENABLING) {
+            } else if (vpnState.state is DISABLED || vpnState.state == ENABLING) {
                 stopElapsedTimeTimer()
                 connectionDetailsToEmit = null
-            } else if (reconnectState == Reconnecting) {
-                connectionDetailsToEmit = null
+                locationState = preferredLocation.toLocationState()
             }
 
             return@combine ViewState(
-                connectionState = vpnState.toConnectionState(reconnectState),
+                connectionState = vpnState.toConnectionState(),
                 connectionDetails = connectionDetailsToEmit,
-                alertState = getAlertState(vpnState.state, reconnectState, vpnState.stopReason, vpnState.alwaysOnState),
+                alertState = getAlertState(vpnState.state, vpnState.stopReason, vpnState.alwaysOnState),
+                locationState = locationState,
+                excludedAppsCount = excludedAppsCount,
             )
         }
+    }
+
+    private fun UserPreferredLocation.toLocationState(): LocationState {
+        return LocationState(
+            icon = countryCode?.run {
+                getEmojiForCountryCode(this)
+            },
+            isCustom = countryCode != null,
+            location = if (!cityName.isNullOrEmpty()) {
+                "${cityName!!}, ${getDisplayableCountry(countryCode!!)}"
+            } else {
+                countryCode?.let {
+                    getDisplayableCountry(it)
+                }
+            },
+        )
+    }
+
+    private fun ConnectionDetails.toLocationState(preferredCountry: String?): LocationState {
+        // split can throw index out of bounds
+        val city = runCatching { location?.split(",")?.get(0)?.trim() }.getOrNull()
+        val countryCode = runCatching { location?.split(",")?.get(1)?.trim() }.getOrNull()
+        val location = if (city != null && countryCode != null) {
+            "$city, ${getDisplayableCountry(countryCode)}"
+        } else {
+            null
+        }
+        return LocationState(
+            icon = countryCode?.run {
+                getEmojiForCountryCode(this)
+            },
+            isCustom = preferredCountry != null,
+            location = location,
+        )
     }
 
     override fun onStart(owner: LifecycleOwner) {
@@ -128,6 +169,13 @@ class NetworkProtectionManagementViewModel @Inject constructor(
         }
     }
 
+    override fun onResume(owner: LifecycleOwner) {
+        super.onResume(owner)
+        viewModelScope.launch(dispatcherProvider.io()) {
+            excludedAppsCount = netPExclusionListRepository.getExcludedAppPackages().size
+        }
+    }
+
     override fun onStop(owner: LifecycleOwner) {
         super.onStop(owner)
         stopElapsedTimeTimer()
@@ -136,15 +184,10 @@ class NetworkProtectionManagementViewModel @Inject constructor(
     @VisibleForTesting
     internal fun getAlertState(
         vpnRunningState: VpnRunningState,
-        reconnectState: ReconnectStatus,
         vpnStopReason: VpnStopReason?,
         vpnAlwaysOnState: AlwaysOnState,
     ): AlertState {
-        return if (vpnRunningState == DISABLED && (reconnectState == Reconnecting || reconnectState == ReconnectingFailed)) {
-            ShowReconnectingFailed
-        } else if (reconnectState == Reconnecting) {
-            ShowReconnecting
-        } else if (vpnRunningState == DISABLED && (vpnStopReason == REVOKED || vpnStopReason == ERROR)) {
+        return if (vpnRunningState == DISABLED && (vpnStopReason == REVOKED || vpnStopReason == ERROR)) {
             ShowRevoked
         } else if (vpnRunningState == ENABLED && vpnAlwaysOnState.isAlwaysOnLockedDown()) {
             ShowAlwaysOnLockdownEnabled
@@ -157,37 +200,32 @@ class NetworkProtectionManagementViewModel @Inject constructor(
         .getStateFlow(NetPVpnFeature.NETP_VPN)
         .combine(refreshVpnRunningState.asStateFlow()) { state, _ -> state }
 
-    private fun VpnState.toConnectionState(reconnectState: ReconnectStatus): ConnectionState =
-        if (this.state != DISABLED && reconnectState == Reconnecting) {
-            Connecting
-        } else {
-            when (this.state) {
-                ENABLING -> Connecting
-                ENABLED -> Connected
-                DISABLED -> Disconnected
-                else -> Unknown
-            }
+    private fun VpnState.toConnectionState(): ConnectionState {
+        return when (this.state) {
+            ENABLING -> Connecting
+            ENABLED -> Connected
+            is DISABLED -> Disconnected
+            else -> Unknown
         }
+    }
 
-    private fun loadConnectionDetails() {
-        networkProtectionRepository.serverDetails.run {
-            this?.let { serverDetails ->
-                connectionDetailsFlow.value = if (connectionDetailsFlow.value == null) {
-                    ConnectionDetails(
-                        location = serverDetails.location ?: "Los Angeles, United States",
-                        ipAddress = serverDetails.ipAddress,
-                    )
-                } else {
-                    connectionDetailsFlow.value!!.copy(
-                        location = serverDetails.location ?: "Los Angeles, United States",
-                        ipAddress = serverDetails.ipAddress,
-                    )
-                }
+    private suspend fun loadConnectionDetails() {
+        wgTunnelConfig.getWgConfig()?.asServerDetails()?.let { serverDetails ->
+            connectionDetailsFlow.value = if (connectionDetailsFlow.value == null) {
+                ConnectionDetails(
+                    location = serverDetails.location,
+                    ipAddress = serverDetails.ipAddress,
+                )
+            } else {
+                connectionDetailsFlow.value!!.copy(
+                    location = serverDetails.location,
+                    ipAddress = serverDetails.ipAddress,
+                )
             }
         }
     }
 
-    private fun startElapsedTimeTimer() {
+    private suspend fun startElapsedTimeTimer() {
         if (!isTimerTickRunning) {
             isTimerTickRunning = true
             loadConnectionDetails()
@@ -198,17 +236,21 @@ class NetworkProtectionManagementViewModel @Inject constructor(
                         // We can't do anything with  a -1 enabledTime so we try to refetch it.
                         enabledTime = networkProtectionRepository.enabledTimeInMillis
                     } else {
+                        val dataVolume = netpDataVolumeStore.dataVolume
                         connectionDetailsFlow.value = if (connectionDetailsFlow.value == null) {
                             ConnectionDetails(
                                 elapsedConnectedTime = getElapsedTimeString(enabledTime),
+                                transmittedData = dataVolume.transmittedBytes,
+                                receivedData = dataVolume.receivedBytes,
                             )
                         } else {
                             connectionDetailsFlow.value!!.copy(
                                 elapsedConnectedTime = getElapsedTimeString(enabledTime),
+                                transmittedData = dataVolume.transmittedBytes,
+                                receivedData = dataVolume.receivedBytes,
                             )
                         }
                     }
-                    reconnectStateFlow.value = networkProtectionRepository.reconnectStatus
                     delay(500)
                 }
             }
@@ -258,11 +300,8 @@ class NetworkProtectionManagementViewModel @Inject constructor(
 
     fun onStartVpn() {
         viewModelScope.launch(dispatcherProvider.io()) {
-            featuresRegistry.registerFeature(NetPVpnFeature.NETP_VPN)
-            // TODO find a better place to reset values when manually starting or stopping NetP.
-            networkProtectionRepository.reconnectStatus = NotReconnecting
+            networkProtectionState.start()
             networkProtectionRepository.enabledTimeInMillis = -1L
-            reconnectNotifications.clearNotifications()
             forceUpdateRunningState()
             tryShowAlwaysOnPromotion()
         }
@@ -309,8 +348,7 @@ class NetworkProtectionManagementViewModel @Inject constructor(
 
     private fun onStopVpn() {
         viewModelScope.launch(dispatcherProvider.io()) {
-            featuresRegistry.unregisterFeature(NetPVpnFeature.NETP_VPN)
-            reconnectNotifications.clearNotifications()
+            networkProtectionState.clearVPNConfigurationAndStop()
             forceUpdateRunningState()
         }
     }
@@ -348,12 +386,22 @@ class NetworkProtectionManagementViewModel @Inject constructor(
         val connectionState: ConnectionState = Disconnected,
         val connectionDetails: ConnectionDetails? = null,
         val alertState: AlertState = None,
+        val locationState: LocationState? = null,
+        val excludedAppsCount: Int = 0,
+    )
+
+    data class LocationState(
+        val location: String?,
+        val icon: String?,
+        val isCustom: Boolean,
     )
 
     data class ConnectionDetails(
         val location: String? = null,
         val ipAddress: String? = null,
         val elapsedConnectedTime: String? = null,
+        val transmittedData: Long = 0L,
+        val receivedData: Long = 0L,
     )
 
     enum class ConnectionState {
@@ -364,8 +412,6 @@ class NetworkProtectionManagementViewModel @Inject constructor(
     }
 
     enum class AlertState {
-        ShowReconnecting,
-        ShowReconnectingFailed,
         ShowRevoked,
         ShowAlwaysOnLockdownEnabled,
         None,

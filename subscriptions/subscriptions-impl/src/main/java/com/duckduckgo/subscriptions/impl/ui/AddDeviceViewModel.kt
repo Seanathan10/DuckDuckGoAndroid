@@ -24,8 +24,8 @@ import androidx.lifecycle.viewModelScope
 import com.duckduckgo.anvil.annotations.ContributesViewModel
 import com.duckduckgo.common.utils.DispatcherProvider
 import com.duckduckgo.di.scopes.ActivityScope
-import com.duckduckgo.subscriptions.impl.SubscriptionsData
 import com.duckduckgo.subscriptions.impl.SubscriptionsManager
+import com.duckduckgo.subscriptions.impl.pixels.SubscriptionPixelSender
 import com.duckduckgo.subscriptions.impl.ui.AddDeviceViewModel.Command.AddEmail
 import com.duckduckgo.subscriptions.impl.ui.AddDeviceViewModel.Command.Error
 import com.duckduckgo.subscriptions.impl.ui.AddDeviceViewModel.Command.ManageEmail
@@ -35,6 +35,8 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -43,6 +45,7 @@ import kotlinx.coroutines.launch
 class AddDeviceViewModel @Inject constructor(
     private val subscriptionsManager: SubscriptionsManager,
     private val dispatcherProvider: DispatcherProvider,
+    private val pixelSender: SubscriptionPixelSender,
 ) : ViewModel(), DefaultLifecycleObserver {
 
     private val command = Channel<Command>(1, DROP_OLDEST)
@@ -54,25 +57,32 @@ class AddDeviceViewModel @Inject constructor(
         val email: String? = null,
     )
 
-    override fun onResume(owner: LifecycleOwner) {
-        super.onResume(owner)
-        viewModelScope.launch(dispatcherProvider.io()) {
-            var email: String? = null
-            val subs = subscriptionsManager.getSubscriptionData()
-            if (subs is SubscriptionsData.Success) {
-                if (!subs.email.isNullOrBlank()) {
-                    email = subs.email
-                }
+    override fun onCreate(owner: LifecycleOwner) {
+        super.onCreate(owner)
+
+        subscriptionsManager.subscriptionStatus
+            .onEach {
+                emitChanges()
+            }.launchIn(viewModelScope)
+    }
+
+    private suspend fun emitChanges() {
+        var email: String? = null
+        subscriptionsManager.getAccount()?.let {
+            if (!it.email.isNullOrBlank()) {
+                email = it.email
             }
-            _viewState.emit(viewState.value.copy(email = email))
         }
+        _viewState.emit(viewState.value.copy(email = email))
     }
 
     fun useEmail() {
+        pixelSender.reportAddDeviceEnterEmailClick()
+
         viewModelScope.launch(dispatcherProvider.io()) {
-            val subs = subscriptionsManager.getSubscriptionData()
-            if (subs is SubscriptionsData.Success) {
-                if (subs.email.isNullOrBlank()) {
+            val account = subscriptionsManager.getAccount()
+            if (account != null) {
+                if (account.email.isNullOrBlank()) {
                     command.send(AddEmail)
                 } else {
                     command.send(ManageEmail)

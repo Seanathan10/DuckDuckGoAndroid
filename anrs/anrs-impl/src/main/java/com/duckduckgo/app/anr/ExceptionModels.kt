@@ -19,10 +19,10 @@ package com.duckduckgo.app.anr
 import com.duckduckgo.anrs.api.CrashLogger
 import com.duckduckgo.app.anrs.store.AnrEntity
 import com.duckduckgo.app.anrs.store.ExceptionEntity
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import logcat.asLog
 import okio.ByteString.Companion.encode
-import org.threeten.bp.LocalDateTime
-import org.threeten.bp.format.DateTimeFormatter
 
 internal data class ProcessThread(
     val name: String,
@@ -70,7 +70,7 @@ internal fun CrashLogger.Crash.asCrashEntity(
     webView: String,
 ): ExceptionEntity {
     val timestamp = FORMATTER_SECONDS.format(LocalDateTime.now())
-    val stacktrace = this.t.asLog()
+    val stacktrace = this.t.asLog().sanitizeStackTrace()
     return ExceptionEntity(
         hash = (stacktrace + timestamp).encode().md5().hex(),
         shortName = this.shortName,
@@ -103,3 +103,23 @@ internal fun Array<StackTraceElement>.asStringArray(): ArrayList<String> {
 }
 
 private val FORMATTER_SECONDS: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+
+internal fun String.sanitizeStackTrace(): String {
+    // if we fail for whatever reason, we don't include the stack trace
+    return runCatching {
+        val emailRegex = Regex("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}")
+        val phoneRegex = Regex("\\b(?:\\d[\\s()-]?){6,14}\\b") // This regex matches common phone number formats
+        val phoneRegex2 = Regex("\\b\\+?\\d[- (]*\\d{3}[- )]*\\d{3}[- ]*\\d{4}\\b") // enhanced to redact also other phone number formats
+        val urlRegex = Regex("\\b(?:https?://|www\\.)\\S+\\b")
+        val ipv4Regex = Regex("\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b")
+
+        var sanitizedStackTrace = this
+        sanitizedStackTrace = sanitizedStackTrace.replace(urlRegex, "[REDACTED_URL]")
+        sanitizedStackTrace = sanitizedStackTrace.replace(emailRegex, "[REDACTED_EMAIL]")
+        sanitizedStackTrace = sanitizedStackTrace.replace(phoneRegex2, "[REDACTED_PHONE]")
+        sanitizedStackTrace = sanitizedStackTrace.replace(phoneRegex, "[REDACTED_PHONE]")
+        sanitizedStackTrace = sanitizedStackTrace.replace(ipv4Regex, "[REDACTED_IPV4]")
+
+        return sanitizedStackTrace
+    }.getOrDefault("")
+}

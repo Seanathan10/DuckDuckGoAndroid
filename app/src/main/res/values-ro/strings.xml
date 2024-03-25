@@ -150,7 +150,6 @@
     <string name="settingsWebTrackingProtectionDescription">Activat în mod implicit</string>
     <string name="settingsHeadingSettings">Setări</string>
     <string name="settingsPermissionsSetting">Permisiuni</string>
-    <string name="settingsAutofillLoginsSetting">Conectări</string>
     <string name="settingsSyncSetting">Sincronizare și copiere de rezervă</string>
     <string name="settingsFireButton">Butonul Foc</string>
 
@@ -501,7 +500,6 @@
     <string name="onboardingFeatureOptionOneClickDataClearing">Ștergerea datelor cu un clic</string>
 
     <!-- Download Confirmation -->
-    <string name="downloadConfirmationContinue">Salvează în Descărcări</string>
     <string name="downloadConfirmationSaveFileTitle" instruction="Placeholder is the name of a file">Salvează %1$s</string>
     <string name="downloadConfirmationKeepBothFilesText">Păstrează ambele</string>
     <string name="downloadConfirmationReplaceOldFileText">Înlocuiește</string>
@@ -636,8 +634,6 @@
 
     <!-- Autofill -->
     <string name="autofillSnackbarAction" instruction="Label for a button that lets the user view the details for a login credential">Vezi</string>
-    <string name="autofillLoginSavedSnackbarMessage">Date de conectare salvate</string>
-    <string name="autofillLoginUpdatedSnackbarMessage">Date de conectare actualizate</string>
 
     <!-- Waitlist Notification -->
     <string name="waitlistNotificationDialogDescription">Dorești să îți trimitem o notificare când este rândul tău?</string>
@@ -780,4 +776,46 @@
     <!-- Private voice search -->
     <string name="accessibilityVoiceSearchSubtitle">Adaugă opțiunea de Căutare vocală privată în bara de adrese.Sunetul nu este stocat sau partajat cu nimeni, inclusiv cu DuckDuckGo.</string>
     <string name="accessibilityVoiceSearchTitle">Căutare vocală privată</string>
+
+    <!-- Uploading an image from the camera or choosing to use existing image -->
+    <string name="imageCaptureCameraUnavailable">Nu s-a putut accesa camera</string>
+    <string name="imageCaptureCameraGalleryDisambiguationTitle">Încarcă o imagine</string>
+    <string name="imageCaptureCameraGalleryDisambiguationGalleryOption">Alege fișierul</string>
+    <string name="imageCaptureCameraGalleryDisambiguationCameraOption">Fă o fotografie</string>
+    <string name="imageCaptureCameraPermissionDeniedTitle">Permite ca DuckDuckGo să solicite accesul la cameră pe acest dispozitiv</string>
+    <string name="imageCaptureCameraPermissionDeniedMessage">Site-urile îți pot utiliza camera numai dacă permiți ca DuckDuckGo să solicite accesul.</string>
+    <string name="imageCaptureCameraPermissionDeniedPositiveButton">Deschide Setări</string>
+    <string name="imageCaptureCameraPermissionDeniedNegativeButton">Anulare</string>
+
+    <!-- Autofill -->
+    <string name="settingsAutofillLoginsSetting">Parole</string>
+    <string name="autofillLoginSavedSnackbarMessage">Parolă salvată</string>
+    <string name="autofillLoginUpdatedSnackbarMessage">Parolă actualizată</string>
+
+    <!-- Bookmarks -->
+    <string name="searchBookmarks">Caută marcaje</string>
+    <string name="deleteFolder" instruction="%1$s is the folder name">"Ștergi %1$s?"</string>
+    <string name="deleteBookmark" instruction="%1$s is the bookmark name">"Ștergi marcajul %1$s?"</string>
+    <string name="bookmarkAddedInBookmarks" instruction="%1$s is the folder name">Marcaj adăugat în %1$s</string>
+    <string name="addToFavorites">Adaugă la preferințe</string>
+    <string name="editBookmark">Editează marcaj</string>
+    <string name="importBookmarksDescription">Dacă marcajele tale sunt salvate într-un alt browser, \nle poți importa în DuckDuckGo.</string>
+    <string name="importBookmarks">Importă marcaje</string>
+    <string name="noResultsFor" instruction="%1$s is the search term">Nu există rezultate pentru „%1$s”</string>
+    <string name="removeFromFavorites">Elimină din favorite</string>
+    <string name="addToFavoritesMenu">Adaugă la preferințe</string>
+    <plurals name="bookmarkFolderDeleteMessage">
+        <item quantity="one">Sigur vrei să ștergi acest folder și %1$d element?</item>
+        <item quantity="few">Sigur vrei să ștergi acest folder și %1$d elemente?</item>
+        <item quantity="other">Sigur vrei să ștergi acest folder și %1$d elemente?</item>
+    </plurals>
+    <string name="deleteBookmarkConfirmationDescription" instruction="Placeholder is the name of the bookmark">Sigur dorești să ștergi marcajul pentru &lt;b&gt;%1$s&lt;/b&gt;?</string>
+
+    <!-- Sync Favicons -->
+    <string name="sync_fetch_icons_title">Preia pictogramele pentru marcaje</string>
+    <string name="sync_fetch_icons_subtitle">Descarcă automat pictograme pentru marcajele tale sincronizate.</string>
+    <string name="faviconsPromptTitle">Descarci pictogramele lipsă?</string>
+    <string name="faviconsPromptMessage">Dorești ca acest dispozitiv să descarce automat pictogramele pentru marcajele sincronizate de pe site-urile marcate?</string>
+    <string name="faviconsPromptPrimaryCta">Păstrează pictogramele de marcaje actualizate</string>
+    <string name="faviconsPromptSecondaryCta">Nu acum</string>
 </resources>

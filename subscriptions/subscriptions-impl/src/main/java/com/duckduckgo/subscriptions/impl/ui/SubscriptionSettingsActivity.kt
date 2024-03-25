@@ -30,13 +30,20 @@ import com.duckduckgo.common.ui.view.dialog.TextAlertDialogBuilder
 import com.duckduckgo.common.ui.viewbinding.viewBinding
 import com.duckduckgo.di.scopes.ActivityScope
 import com.duckduckgo.navigation.api.GlobalActivityStarter
+import com.duckduckgo.subscriptions.api.SubscriptionStatus.AUTO_RENEWABLE
 import com.duckduckgo.subscriptions.impl.R.string
 import com.duckduckgo.subscriptions.impl.SubscriptionsConstants.BASIC_SUBSCRIPTION
+import com.duckduckgo.subscriptions.impl.SubscriptionsConstants.FAQS_URL
 import com.duckduckgo.subscriptions.impl.databinding.ActivitySubscriptionSettingsBinding
+import com.duckduckgo.subscriptions.impl.pixels.SubscriptionPixelSender
 import com.duckduckgo.subscriptions.impl.ui.AddDeviceActivity.Companion.AddDeviceScreenWithEmptyParams
+import com.duckduckgo.subscriptions.impl.ui.ChangePlanActivity.Companion.ChangePlanScreenWithEmptyParams
 import com.duckduckgo.subscriptions.impl.ui.SubscriptionSettingsActivity.Companion.SubscriptionsSettingsScreenWithEmptyParams
 import com.duckduckgo.subscriptions.impl.ui.SubscriptionSettingsViewModel.Command
 import com.duckduckgo.subscriptions.impl.ui.SubscriptionSettingsViewModel.Command.FinishSignOut
+import com.duckduckgo.subscriptions.impl.ui.SubscriptionSettingsViewModel.Command.GoToPortal
+import com.duckduckgo.subscriptions.impl.ui.SubscriptionSettingsViewModel.SubscriptionDuration.Monthly
+import com.duckduckgo.subscriptions.impl.ui.SubscriptionSettingsViewModel.ViewState
 import javax.inject.Inject
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -47,6 +54,9 @@ class SubscriptionSettingsActivity : DuckDuckGoActivity() {
 
     @Inject
     lateinit var globalActivityStarter: GlobalActivityStarter
+
+    @Inject
+    lateinit var pixelSender: SubscriptionPixelSender
 
     private val viewModel: SubscriptionSettingsViewModel by bindViewModel()
     private val binding: ActivitySubscriptionSettingsBinding by viewBinding()
@@ -59,12 +69,19 @@ class SubscriptionSettingsActivity : DuckDuckGoActivity() {
         setContentView(binding.root)
         setupToolbar(toolbar)
 
+        lifecycle.addObserver(viewModel)
+
         viewModel.commands()
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .onEach { processCommand(it) }
             .launchIn(lifecycleScope)
 
+        viewModel.viewState.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED).onEach {
+            renderView(it)
+        }.launchIn(lifecycleScope)
+
         binding.addDevice.setClickListener {
+            pixelSender.reportSettingsAddDeviceClick()
             globalActivityStarter.start(this, AddDeviceScreenWithEmptyParams)
         }
 
@@ -89,15 +106,52 @@ class SubscriptionSettingsActivity : DuckDuckGoActivity() {
                 .show()
         }
 
-        binding.changePlan.setClickListener {
-            val url = String.format(URL, BASIC_SUBSCRIPTION, applicationContext.packageName)
-            val intent = Intent(Intent.ACTION_VIEW)
-            intent.setData(Uri.parse(url))
-            startActivity(intent)
+        binding.faq.setClickListener {
+            goToFaqs()
         }
 
-        binding.faq.setClickListener {
-            Toast.makeText(this, "This will take you to FAQs", Toast.LENGTH_SHORT).show()
+        if (savedInstanceState == null) {
+            pixelSender.reportSubscriptionSettingsShown()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        lifecycle.removeObserver(viewModel)
+    }
+
+    private fun renderView(viewState: ViewState) {
+        binding.subscriptionDuration.setText(
+            if (viewState.duration is Monthly) string.monthlySubscription else string.yearlySubscription,
+        )
+
+        val status = when (viewState.status) {
+            AUTO_RENEWABLE -> getString(string.renews)
+            else -> getString(string.expires)
+        }
+        binding.description.text = getString(string.subscriptionsData, status, viewState.date)
+
+        when (viewState.platform?.lowercase()) {
+            "apple", "ios" ->
+                binding.changePlan.setClickListener {
+                    pixelSender.reportSubscriptionSettingsChangePlanOrBillingClick()
+                    globalActivityStarter.start(this, ChangePlanScreenWithEmptyParams)
+                }
+            "stripe" -> {
+                binding.changePlan.setClickListener {
+                    pixelSender.reportSubscriptionSettingsChangePlanOrBillingClick()
+                    viewModel.goToStripe()
+                }
+            }
+            else -> {
+                binding.changePlan.setClickListener {
+                    pixelSender.reportSubscriptionSettingsChangePlanOrBillingClick()
+                    val url = String.format(URL, BASIC_SUBSCRIPTION, applicationContext.packageName)
+                    val intent = Intent(Intent.ACTION_VIEW)
+                    intent.setData(Uri.parse(url))
+                    startActivity(intent)
+                }
+            }
         }
     }
 
@@ -107,10 +161,32 @@ class SubscriptionSettingsActivity : DuckDuckGoActivity() {
                 Toast.makeText(this, string.subscriptionRemoved, Toast.LENGTH_SHORT).show()
                 finish()
             }
+            is GoToPortal -> {
+                globalActivityStarter.start(
+                    this,
+                    SubscriptionsWebViewActivityWithParams(
+                        url = command.url,
+                        screenTitle = getString(string.changePlanTitle),
+                        defaultToolbar = false,
+                    ),
+                )
+            }
         }
     }
+
+    private fun goToFaqs() {
+        globalActivityStarter.start(
+            this,
+            SubscriptionsWebViewActivityWithParams(
+                url = FAQS_URL,
+                screenTitle = "",
+                defaultToolbar = false,
+            ),
+        )
+    }
+
     companion object {
         const val URL = "https://play.google.com/store/account/subscriptions?sku=%s&package=%s"
-        object SubscriptionsSettingsScreenWithEmptyParams : GlobalActivityStarter.ActivityParams
+        data object SubscriptionsSettingsScreenWithEmptyParams : GlobalActivityStarter.ActivityParams
     }
 }

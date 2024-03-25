@@ -27,11 +27,15 @@ android {
         generateDaggerFactories = true // default is false
     }
     namespace 'com.duckduckgo.adclick.impl'
+    compileOptions {
+        coreLibraryDesugaringEnabled = true
+    }
 }
 
 dependencies {
     anvil project(path: ':anvil-compiler')
     implementation project(path: ':anvil-annotations')
+    implementation project(path: ':browser-api')
     implementation project(path: ':ad-click-api')
     implementation project(path: ':di')
     implementation project(path: ':common-utils')
@@ -73,9 +77,6 @@ dependencies {
         // conflicts with mockito due to direct inclusion of byte buddy
         exclude group: "org.jetbrains.kotlinx", module: "kotlinx-coroutines-debug"
     }
-
-    implementation "com.jakewharton.threetenabp:threetenabp:_"
-    testImplementation "org.threeten:threetenbp:_"
 
     implementation JakeWharton.timber
 

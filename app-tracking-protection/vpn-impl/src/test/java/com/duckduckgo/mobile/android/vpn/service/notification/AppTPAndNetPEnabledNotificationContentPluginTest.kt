@@ -16,6 +16,7 @@
 
 package com.duckduckgo.mobile.android.vpn.service.notification
 
+import android.app.PendingIntent
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -26,12 +27,12 @@ import com.duckduckgo.common.utils.formatters.time.DatabaseDateFormatter
 import com.duckduckgo.mobile.android.app.tracking.AppTrackingProtection
 import com.duckduckgo.mobile.android.vpn.model.TrackingApp
 import com.duckduckgo.mobile.android.vpn.model.VpnTracker
+import com.duckduckgo.mobile.android.vpn.service.VpnEnabledNotificationContentPlugin.NotificationActions
 import com.duckduckgo.mobile.android.vpn.stats.AppTrackerBlockingStatsRepository
 import com.duckduckgo.mobile.android.vpn.stats.RealAppTrackerBlockingStatsRepository
 import com.duckduckgo.mobile.android.vpn.store.VpnDatabase
 import com.duckduckgo.mobile.android.vpn.trackers.AppTrackerEntity
 import com.duckduckgo.networkprotection.api.NetworkProtectionState
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.*
@@ -44,7 +45,6 @@ import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 
 @RunWith(AndroidJUnit4::class)
-@OptIn(ExperimentalCoroutinesApi::class)
 class AppTPAndNetPEnabledNotificationContentPluginTest {
 
     @get:Rule
@@ -62,6 +62,13 @@ class AppTPAndNetPEnabledNotificationContentPluginTest {
 
     @Mock
     private lateinit var networkProtectionState: NetworkProtectionState
+
+    private val intentProvider = object : AppTpEnabledNotificationContentPlugin.IntentProvider {
+        override fun getOnPressNotificationIntent(): PendingIntent? = null
+
+        override fun getDeleteNotificationIntent(): PendingIntent? = null
+    }
+
     private val resources = InstrumentationRegistry.getInstrumentation().targetContext.resources
     private lateinit var plugin: AppTPAndNetPEnabledNotificationContentPlugin
 
@@ -74,12 +81,12 @@ class AppTPAndNetPEnabledNotificationContentPluginTest {
         appTrackerBlockingStatsRepository = RealAppTrackerBlockingStatsRepository(db, coroutineTestRule.testDispatcherProvider)
 
         plugin = AppTPAndNetPEnabledNotificationContentPlugin(
-            InstrumentationRegistry.getInstrumentation().targetContext.applicationContext,
             resources,
             appTrackerBlockingStatsRepository,
             appTrackingProtection,
             networkProtectionState,
-        ) { null }
+            intentProvider,
+        )
     }
 
     @After
@@ -95,8 +102,8 @@ class AppTPAndNetPEnabledNotificationContentPluginTest {
 
         val content = plugin.getInitialContent()
 
-        content!!.assertTitleEquals("Device traffic routing through the VPN. No tracking attempts blocked in apps (past hour).")
-        assertNull(content.notificationAction)
+        content!!.assertTextEquals("Device traffic routing through the VPN. No tracking attempts blocked in apps (past hour).")
+        assertEquals(NotificationActions.VPNActions, content.notificationActions)
     }
 
     @Test
@@ -107,8 +114,8 @@ class AppTPAndNetPEnabledNotificationContentPluginTest {
 
         val content = plugin.getInitialContent()
 
-        content!!.assertTitleEquals("Device traffic routing through Stockholm, SE. No tracking attempts blocked in apps (past hour).")
-        assertNull(content.notificationAction)
+        content!!.assertTextEquals("Device traffic routing through Stockholm, SE. No tracking attempts blocked in apps (past hour).")
+        assertEquals(NotificationActions.VPNActions, content.notificationActions)
     }
 
     @Test
@@ -134,7 +141,8 @@ class AppTPAndNetPEnabledNotificationContentPluginTest {
         plugin.getUpdatedContent().test {
             val item = awaitItem()
 
-            item.assertTitleEquals("Device traffic routing through Stockholm, SE. No tracking attempts blocked in apps (past hour).")
+            item.assertTextEquals("Device traffic routing through Stockholm, SE. No tracking attempts blocked in apps (past hour).")
+            assertTrue(item.notificationActions is NotificationActions.VPNActions)
 
             cancelAndConsumeRemainingEvents()
         }
@@ -152,7 +160,7 @@ class AppTPAndNetPEnabledNotificationContentPluginTest {
             skipItems(1)
             val item = awaitItem()
 
-            item.assertTitleEquals("Device traffic routing through Stockholm, SE. Tracking attempts blocked in 1 app (past hour).")
+            item.assertTextEquals("Device traffic routing through Stockholm, SE. Tracking attempts blocked in 1 app (past hour).")
 
             cancelAndConsumeRemainingEvents()
         }
@@ -176,7 +184,7 @@ class AppTPAndNetPEnabledNotificationContentPluginTest {
 
             val item = expectMostRecentItem()
 
-            item.assertTitleEquals("Device traffic routing through Stockholm, SE. Tracking attempts blocked across 2 apps (past hour).")
+            item.assertTextEquals("Device traffic routing through Stockholm, SE. Tracking attempts blocked across 2 apps (past hour).")
 
             cancelAndConsumeRemainingEvents()
         }
@@ -200,7 +208,7 @@ class AppTPAndNetPEnabledNotificationContentPluginTest {
 
             val item = expectMostRecentItem()
 
-            item.assertTitleEquals("Device traffic routing through the VPN. Tracking attempts blocked across 2 apps (past hour).")
+            item.assertTextEquals("Device traffic routing through the VPN. Tracking attempts blocked across 2 apps (past hour).")
 
             cancelAndConsumeRemainingEvents()
         }
@@ -215,7 +223,7 @@ class AppTPAndNetPEnabledNotificationContentPluginTest {
 
             val item = expectMostRecentItem()
 
-            item.assertTitleEquals("Device traffic routing through Stockholm, SE. No tracking attempts blocked in apps (past hour).")
+            item.assertTextEquals("Device traffic routing through Stockholm, SE. No tracking attempts blocked in apps (past hour).")
 
             cancelAndConsumeRemainingEvents()
         }
@@ -230,7 +238,7 @@ class AppTPAndNetPEnabledNotificationContentPluginTest {
 
             val item = expectMostRecentItem()
 
-            item.assertTitleEquals("Device traffic routing through the VPN. No tracking attempts blocked in apps (past hour).")
+            item.assertTextEquals("Device traffic routing through the VPN. No tracking attempts blocked in apps (past hour).")
 
             cancelAndConsumeRemainingEvents()
         }
@@ -248,7 +256,7 @@ class AppTPAndNetPEnabledNotificationContentPluginTest {
 
             val item = expectMostRecentItem()
 
-            item.assertTitleEquals("Device traffic routing through Stockholm, SE. Tracking attempts blocked in 1 app (past hour).")
+            item.assertTextEquals("Device traffic routing through Stockholm, SE. Tracking attempts blocked in 1 app (past hour).")
 
             cancelAndConsumeRemainingEvents()
         }
@@ -266,7 +274,7 @@ class AppTPAndNetPEnabledNotificationContentPluginTest {
 
             val item = expectMostRecentItem()
 
-            item.assertTitleEquals("Device traffic routing through the VPN. Tracking attempts blocked in 1 app (past hour).")
+            item.assertTextEquals("Device traffic routing through the VPN. Tracking attempts blocked in 1 app (past hour).")
 
             cancelAndConsumeRemainingEvents()
         }

@@ -31,6 +31,7 @@ import com.duckduckgo.autoconsent.api.Autoconsent
 import com.duckduckgo.autofill.api.AutofillCapabilityChecker
 import com.duckduckgo.autofill.api.email.EmailManager
 import com.duckduckgo.common.test.CoroutineTestRule
+import com.duckduckgo.common.ui.view.listitem.CheckListItem
 import com.duckduckgo.mobile.android.app.tracking.AppTrackingProtection
 import com.duckduckgo.navigation.api.GlobalActivityStarter.ActivityParams
 import com.duckduckgo.networkprotection.api.NetworkProtectionState
@@ -41,9 +42,9 @@ import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitli
 import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitlistState.JoinedWaitlist
 import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitlistState.NotUnlocked
 import com.duckduckgo.networkprotection.api.NetworkProtectionWaitlist.NetPWaitlistState.PendingInviteCode
+import com.duckduckgo.subscriptions.api.Subscriptions
 import com.duckduckgo.sync.api.DeviceSyncState
 import kotlin.time.ExperimentalTime
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -56,7 +57,6 @@ import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.*
 
-@ExperimentalCoroutinesApi
 @ExperimentalTime
 class SettingsViewModelTest {
 
@@ -93,6 +93,9 @@ class SettingsViewModelTest {
     @Mock
     private lateinit var mockAutoconsent: Autoconsent
 
+    @Mock
+    private lateinit var subscriptions: Subscriptions
+
     @get:Rule
     val coroutineTestRule: CoroutineTestRule = CoroutineTestRule()
 
@@ -108,6 +111,7 @@ class SettingsViewModelTest {
             whenever(appTrackingProtection.isRunning()).thenReturn(false)
             whenever(appTrackingProtection.isEnabled()).thenReturn(false)
             whenever(appTrackingProtection.isOnboarded()).thenReturn(false)
+            whenever(subscriptions.isEnabled()).thenReturn(false)
         }
 
         testee = SettingsViewModel(
@@ -121,6 +125,7 @@ class SettingsViewModelTest {
             networkProtectionWaitlist,
             coroutineTestRule.testDispatcherProvider,
             mockAutoconsent,
+            subscriptions,
         )
 
         runTest {

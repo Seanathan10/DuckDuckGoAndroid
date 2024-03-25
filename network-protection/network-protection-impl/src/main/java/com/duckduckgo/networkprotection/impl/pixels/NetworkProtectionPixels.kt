@@ -25,10 +25,14 @@ import com.duckduckgo.networkprotection.impl.cohort.NetpCohortStore
 import com.duckduckgo.networkprotection.impl.pixels.NetworkProtectionPixelNames.*
 import com.squareup.anvil.annotations.ContributesBinding
 import dagger.SingleInstanceIn
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
-import org.threeten.bp.Instant
-import org.threeten.bp.ZoneOffset
-import org.threeten.bp.format.DateTimeFormatter
+import javax.inject.Qualifier
 
 interface NetworkProtectionPixels {
     /**
@@ -58,20 +62,6 @@ interface NetworkProtectionPixels {
 
     /** This pixel will be unique on a given day, no matter how many times we call this fun */
     fun reportDisabled()
-
-    /**
-     * This fun will fire two pixels
-     * daily -> fire only once a day no matter how many times we call this fun
-     * count -> fire a pixel on every call
-     */
-    fun reportVpnConnectivityLoss()
-
-    /**
-     * This fun will fire two pixels
-     * daily -> fire only once a day no matter how many times we call this fun
-     * count -> fire a pixel on every call
-     */
-    fun reportVpnReconnectFailed()
 
     /**
      * This fun will fire two pixels
@@ -203,13 +193,6 @@ interface NetworkProtectionPixels {
      * daily -> fire only once a day no matter how many times we call this fun
      * count -> fire a pixel on every call
      */
-    fun reportWhatIsAVpnScreenShown()
-
-    /**
-     * This fun will fire two pixels
-     * daily -> fire only once a day no matter how many times we call this fun
-     * count -> fire a pixel on every call
-     */
     fun reportFaqsShown()
 
     /**
@@ -309,6 +292,17 @@ interface NetworkProtectionPixels {
      * Fires count pixel when a tunnel failure (handshake with egress) is recovered on its own before VPN is disabled
      */
     fun reportTunnelFailureRecovered()
+    fun reportVpnSnoozedCanceled()
+
+    fun reportFailureRecoveryStarted()
+    fun reportFailureRecoveryFailed()
+    fun reportFailureRecoveryCompletedWithServerHealthy()
+    fun reportFailureRecoveryCompletedWithServerUnhealthy()
+    fun reportFailureRecoveryCompletedWithDifferentTunnelAddress()
+
+    fun reportAccessRevokedDialogShown()
+    fun reportPrivacyProPromotionDialogShown()
+    fun reportVpnBetaStoppedWhenPrivacyProUpdatedAndEnabled()
 }
 
 @ContributesBinding(AppScope::class)
@@ -317,6 +311,7 @@ class RealNetworkProtectionPixel @Inject constructor(
     private val pixel: Pixel,
     private val vpnSharedPreferencesProvider: VpnSharedPreferencesProvider,
     private val cohortStore: NetpCohortStore,
+    private val etTimestamp: ETTimestamp,
 ) : NetworkProtectionPixels {
 
     private val preferences: SharedPreferences by lazy {
@@ -343,8 +338,22 @@ class RealNetworkProtectionPixel @Inject constructor(
     }
 
     override fun reportEnabled() {
-        tryToFireDailyPixel(NETP_ENABLE_DAILY, mapOf("cohort" to cohortStore.cohortLocalDate?.toString().orEmpty()))
-        tryToFireUniquePixel(NETP_ENABLE_UNIQUE, payload = mapOf("cohort" to cohortStore.cohortLocalDate?.toString().orEmpty()))
+        fun LocalDate?.asWeeklyCohortDate(): String {
+            val baseDate = LocalDate.of(2023, 1, 1)
+            return this?.let { cohortLocalDate ->
+                // do we need to coalesce
+                // I know cohortLocalDate is in ET timezone and we're comparing with LocalDate.now() but the error should be ok
+                val weeksSinceCohortAssigned = ChronoUnit.WEEKS.between(cohortLocalDate, LocalDate.now())
+                return@let if (weeksSinceCohortAssigned > WEEKS_TO_COALESCE_COHORT) {
+                    // coalesce to no cohort
+                    ""
+                } else {
+                    "week-${ChronoUnit.WEEKS.between(baseDate, cohortLocalDate) + 1}"
+                }
+            } ?: ""
+        }
+        tryToFireDailyPixel(NETP_ENABLE_DAILY, mapOf("cohort" to cohortStore.cohortLocalDate.asWeeklyCohortDate()))
+        tryToFireUniquePixel(NETP_ENABLE_UNIQUE, payload = mapOf("cohort" to cohortStore.cohortLocalDate.asWeeklyCohortDate()))
     }
 
     override fun reportEnabledOnSearch() {
@@ -354,16 +363,6 @@ class RealNetworkProtectionPixel @Inject constructor(
 
     override fun reportDisabled() {
         tryToFireDailyPixel(NETP_DISABLE_DAILY)
-    }
-
-    override fun reportVpnConnectivityLoss() {
-        tryToFireDailyPixel(NETP_VPN_CONNECTIVITY_LOST_DAILY)
-        firePixel(NETP_VPN_CONNECTIVITY_LOST)
-    }
-
-    override fun reportVpnReconnectFailed() {
-        tryToFireDailyPixel(NETP_VPN_RECONNECT_FAILED_DAILY)
-        firePixel(NETP_VPN_RECONNECT_FAILED)
     }
 
     override fun reportWireguardLibraryLoadFailed() {
@@ -458,11 +457,6 @@ class RealNetworkProtectionPixel @Inject constructor(
         firePixel(NETP_EXCLUSION_LIST_LAUNCH_BREAKAGE_REPORT)
     }
 
-    override fun reportWhatIsAVpnScreenShown() {
-        tryToFireDailyPixel(NETP_INFO_VPN_SHOWN_DAILY)
-        firePixel(NETP_INFO_VPN_SHOWN)
-    }
-
     override fun reportFaqsShown() {
         tryToFireDailyPixel(NETP_FAQS_SHOWN_DAILY)
         firePixel(NETP_FAQS_SHOWN)
@@ -540,6 +534,51 @@ class RealNetworkProtectionPixel @Inject constructor(
         firePixel(NETP_TUNNEL_FAILURE_RECOVERED)
     }
 
+    override fun reportVpnSnoozedCanceled() {
+        tryToFireDailyPixel(VPN_SNOOZE_CANCELED_DAILY)
+        firePixel(VPN_SNOOZE_CANCELED)
+    }
+
+    override fun reportFailureRecoveryStarted() {
+        firePixel(NETP_FAILURE_RECOVERY_STARTED)
+        tryToFireDailyPixel(NETP_FAILURE_RECOVERY_STARTED_DAILY)
+    }
+
+    override fun reportFailureRecoveryFailed() {
+        firePixel(NETP_FAILURE_RECOVERY_FAILED)
+        tryToFireDailyPixel(NETP_FAILURE_RECOVERY_FAILED_DAILY)
+    }
+
+    override fun reportFailureRecoveryCompletedWithServerHealthy() {
+        firePixel(NETP_FAILURE_RECOVERY_COMPLETED_SERVER_HEALTHY)
+        tryToFireDailyPixel(NETP_FAILURE_RECOVERY_COMPLETED_SERVER_HEALTHY_DAILY)
+    }
+
+    override fun reportFailureRecoveryCompletedWithServerUnhealthy() {
+        firePixel(NETP_FAILURE_RECOVERY_COMPLETED_SERVER_UNHEALTHY)
+        tryToFireDailyPixel(NETP_FAILURE_RECOVERY_COMPLETED_SERVER_UNHEALTHY_DAILY)
+    }
+
+    override fun reportFailureRecoveryCompletedWithDifferentTunnelAddress() {
+        firePixel(NETP_FAILURE_RECOVERY_COMPLETED_SERVER_HEALTHY_NEW_TUN_ADDRESS)
+        tryToFireDailyPixel(NETP_FAILURE_RECOVERY_COMPLETED_SERVER_HEALTHY_NEW_TUN_ADDRESS_DAILY)
+    }
+
+    override fun reportAccessRevokedDialogShown() {
+        firePixel(NETP_ACCESS_REVOKED_DIALOG_SHOWN)
+        tryToFireDailyPixel(NETP_ACCESS_REVOKED_DIALOG_SHOWN_DAILY)
+    }
+
+    override fun reportPrivacyProPromotionDialogShown() {
+        firePixel(NETP_PRIVACY_PRO_PROMOTION_DIALOG_SHOWN)
+        tryToFireDailyPixel(NETP_PRIVACY_PRO_PROMOTION_DIALOG_SHOWN_DAILY)
+    }
+
+    override fun reportVpnBetaStoppedWhenPrivacyProUpdatedAndEnabled() {
+        firePixel(NETP_BETA_STOPPED_WHEN_PRIVACY_PRO_UPDATED_AND_ENABLED)
+        tryToFireDailyPixel(NETP_BETA_STOPPED_WHEN_PRIVACY_PRO_UPDATED_AND_ENABLED_DAILY)
+    }
+
     private fun firePixel(
         p: NetworkProtectionPixelNames,
         payload: Map<String, String> = emptyMap(),
@@ -553,7 +592,7 @@ class RealNetworkProtectionPixel @Inject constructor(
         enqueue: Boolean = false,
     ) {
         if (enqueue) {
-            pixel.enqueueFire(pixelName, payload)
+            pixel.enqueueFire(pixelName, payload.addTimestampAtZoneET())
         } else {
             pixel.fire(pixelName, payload)
         }
@@ -577,7 +616,7 @@ class RealNetworkProtectionPixel @Inject constructor(
         // check if pixel was already sent in the current day
         if (timestamp == null || now > timestamp) {
             if (enqueue) {
-                this.pixel.enqueueFire(pixelName, payload)
+                this.pixel.enqueueFire(pixelName, payload.addTimestampAtZoneET())
                     .also { preferences.edit { putString(pixelName.appendTimestampSuffix(), now) } }
             } else {
                 this.pixel.fire(pixelName, payload)
@@ -596,7 +635,7 @@ class RealNetworkProtectionPixel @Inject constructor(
         if (didExecuteAlready) return
 
         if (pixel.enqueue) {
-            this.pixel.enqueueFire(pixel, payload).also { preferences.edit { putBoolean(tag ?: pixel.pixelName, true) } }
+            this.pixel.enqueueFire(pixel, payload.addTimestampAtZoneET()).also { preferences.edit { putBoolean(tag ?: pixel.pixelName, true) } }
         } else {
             this.pixel.fire(pixel, payload).also { preferences.edit { putBoolean(tag ?: pixel.pixelName, true) } }
         }
@@ -606,6 +645,12 @@ class RealNetworkProtectionPixel @Inject constructor(
         return "${this}_timestamp"
     }
 
+    private fun Map<String, String>.addTimestampAtZoneET(): Map<String, String> {
+        return this.toMutableMap().apply {
+            put(TIMESTAMP_ET_PARAM, etTimestamp.formattedTimestamp())
+        }
+    }
+
     private fun getUtcIsoLocalDate(): String {
         // returns YYYY-MM-dd
         return Instant.now().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_LOCAL_DATE)
@@ -613,5 +658,20 @@ class RealNetworkProtectionPixel @Inject constructor(
 
     companion object {
         private const val NETP_PIXELS_PREF_FILE = "com.duckduckgo.networkprotection.pixels.v1"
+        private const val TIMESTAMP_ET_PARAM = "ts"
+        private const val WEEKS_TO_COALESCE_COHORT = 6
+    }
+}
+
+@Retention(AnnotationRetention.BINARY)
+@Qualifier
+private annotation class InternalApi
+
+// This class is here for testing purposes
+@InternalApi
+open class ETTimestamp @Inject constructor() {
+    open fun formattedTimestamp(): String {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+        return Instant.now().atZone(ZoneId.of("America/New_York")).format(formatter)
     }
 }

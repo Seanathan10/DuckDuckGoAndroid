@@ -25,6 +25,7 @@ import com.duckduckgo.common.test.CoroutineTestRule
 import com.duckduckgo.common.utils.device.DeviceInfo
 import com.duckduckgo.common.utils.plugins.PluginPoint
 import com.duckduckgo.feature.toggles.api.FeatureToggle
+import com.duckduckgo.feature.toggles.api.Toggle
 import com.duckduckgo.privacy.config.api.DefaultPolicy.CLOSEST
 import com.duckduckgo.privacy.config.api.DefaultPolicy.DDG
 import com.duckduckgo.privacy.config.api.DefaultPolicy.DDG_FIXED
@@ -32,7 +33,7 @@ import com.duckduckgo.privacy.config.api.PrivacyFeatureName
 import com.duckduckgo.privacy.config.api.UserAgent
 import com.duckduckgo.user.agent.api.UserAgentInterceptor
 import com.duckduckgo.user.agent.api.UserAgentProvider
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.duckduckgo.user.agent.impl.remoteconfig.ClientBrandHintFeature
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.After
@@ -47,7 +48,6 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
-@ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
 class UserAgentProviderTest {
 
@@ -60,12 +60,15 @@ class UserAgentProviderTest {
     private var userAgent: UserAgent = mock()
     private var toggle: FeatureToggle = mock()
     private var statisticsDataStore: StatisticsDataStore = mock()
+    private var toggles: Toggle = mock()
+    private var clientBrandHintFeature: ClientBrandHintFeature = mock()
 
     @Before
     fun before() {
         whenever(deviceInfo.majorAppVersion).thenReturn("5")
         whenever(toggle.isFeatureEnabled(PrivacyFeatureName.UserAgentFeatureName.value)).thenReturn(true)
-
+        whenever(clientBrandHintFeature.self()).thenReturn(toggles)
+        whenever(clientBrandHintFeature.self().isEnabled()).thenReturn(false)
         whenever(userAgent.isADefaultException("default.com")).thenReturn(true)
         whenever(userAgent.isADefaultException("unprotected.com")).thenReturn(true)
         whenever(userAgent.isADefaultException("subdomain.default.com")).thenReturn(true)
@@ -520,58 +523,58 @@ class UserAgentProviderTest {
         )
         val converted = Regex(
             "Mozilla/5.0 \\(Linux; Android .*?\\) AppleWebKit/[.0-9]+" +
-                " \\(KHTML, like Gecko\\) Version/[.0-9]+ Chrome/[.0-9]+ Mobile DuckDuckGo/5 Safari/[.0-9]+",
+                " \\(KHTML, like Gecko\\) Version/[.0-9]+ Chrome/(\\d+)\\.0\\.0\\.0 Mobile DuckDuckGo/5 Safari/[.0-9]+",
         )
         val desktop = Regex(
             "Mozilla/5.0 \\(X11; Linux .*?\\) AppleWebKit/[.0-9]+ " +
-                "\\(KHTML, like Gecko\\) Version/[.0-9]+ Chrome/[.0-9]+ DuckDuckGo/5 Safari/[.0-9]+",
+                "\\(KHTML, like Gecko\\) Version/[.0-9]+ Chrome/(\\d+)\\.0\\.0\\.0 DuckDuckGo/5 Safari/[.0-9]+",
         )
         val noApplication = Regex(
             "Mozilla/5.0 \\(Linux; Android .*?\\) AppleWebKit/[.0-9]+ " +
-                "\\(KHTML, like Gecko\\) Version/[.0-9]+ Chrome/[.0-9]+ Mobile Safari/[.0-9]+",
+                "\\(KHTML, like Gecko\\) Version/[.0-9]+ Chrome/(\\d+)\\.0\\.0\\.0 Mobile Safari/[.0-9]+",
         )
         val noVersion = Regex(
             "Mozilla/5.0 \\(Linux; Android .*?\\) AppleWebKit/[.0-9]+ " +
-                "\\(KHTML, like Gecko\\) Chrome/[.0-9]+ Mobile DuckDuckGo/5 Safari/[.0-9]+",
+                "\\(KHTML, like Gecko\\) Chrome/(\\d+)\\.0\\.0\\.0 Mobile DuckDuckGo/5 Safari/[.0-9]+",
         )
         val missingWebKit = Regex(
             "Mozilla/5.0 \\(Linux; Android .*?\\) DuckDuckGo/5 Safari/[.0-9]+",
         )
         val missingSafari = Regex(
             "Mozilla/5.0 \\(Linux; Android .*?\\) AppleWebKit/[.0-9]+ " +
-                "\\(KHTML, like Gecko\\) Version/[.0-9]+ Chrome/[.0-9]+ Mobile DuckDuckGo/5",
+                "\\(KHTML, like Gecko\\) Version/[.0-9]+ Chrome/(\\d+)\\.0\\.0\\.0 Mobile DuckDuckGo/5",
         )
         val ddgFixed = Regex(
             "Mozilla/5.0 \\(Linux; Android 10; K\\) AppleWebKit/[.0-9]+ " +
-                "\\(KHTML, like Gecko\\) Chrome/[.0-9]+ Mobile DuckDuckGo/5 Safari/[.0-9]+",
+                "\\(KHTML, like Gecko\\) Chrome/(\\d+)\\.0\\.0\\.0 Mobile DuckDuckGo/5 Safari/[.0-9]+",
         )
         val ddgFixedNoApplication = Regex(
             "Mozilla/5.0 \\(Linux; Android 10; K\\) AppleWebKit/[.0-9]+ " +
-                "\\(KHTML, like Gecko\\) Chrome/[.0-9]+ Mobile Safari/[.0-9]+",
+                "\\(KHTML, like Gecko\\) Chrome/(\\d+)\\.0\\.0\\.0 Mobile Safari/[.0-9]+",
         )
         val ddgFixedDesktop = Regex(
             "Mozilla/5.0 \\(X11; Linux .*?\\) AppleWebKit/[.0-9]+ " +
-                "\\(KHTML, like Gecko\\) Chrome/[.0-9]+ DuckDuckGo/5 Safari/[.0-9]+",
+                "\\(KHTML, like Gecko\\) Chrome/(\\d+)\\.0\\.0\\.0 DuckDuckGo/5 Safari/[.0-9]+",
         )
         val ddgFixedDesktopArch = Regex(
             "Mozilla/5.0 \\(X11; Linux x86_64\\) AppleWebKit/[.0-9]+ " +
-                "\\(KHTML, like Gecko\\) Chrome/[.0-9]+ DuckDuckGo/5 Safari/[.0-9]+",
+                "\\(KHTML, like Gecko\\) Chrome/(\\d+)\\.0\\.0\\.0 DuckDuckGo/5 Safari/[.0-9]+",
         )
         val ddgFixedDesktopNoApplication = Regex(
             "Mozilla/5.0 \\(X11; Linux .*?\\) AppleWebKit/[.0-9]+ " +
-                "\\(KHTML, like Gecko\\) Chrome/[.0-9]+ Safari/[.0-9]+",
+                "\\(KHTML, like Gecko\\) Chrome/(\\d+)\\.0\\.0\\.0 Safari/[.0-9]+",
         )
         val closest = Regex(
             "Mozilla/5.0 \\(Linux; Android 10; K\\) AppleWebKit/[.0-9]+ " +
-                "\\(KHTML, like Gecko\\) Chrome/[.0-9]+ Mobile Safari/[.0-9]+",
+                "\\(KHTML, like Gecko\\) Chrome/(\\d+)\\.0\\.0\\.0 Mobile Safari/[.0-9]+",
         )
         val closestDesktop = Regex(
             "Mozilla/5.0 \\(X11; Linux .*?\\) AppleWebKit/[.0-9]+ " +
-                "\\(KHTML, like Gecko\\) Chrome/[.0-9]+ Safari/[.0-9]+",
+                "\\(KHTML, like Gecko\\) Chrome/(\\d+)\\.0\\.0\\.0 Safari/[.0-9]+",
         )
         val closestDesktopArch = Regex(
             "Mozilla/5.0 \\(X11; Linux x86_64\\) AppleWebKit/[.0-9]+ " +
-                "\\(KHTML, like Gecko\\) Chrome/[.0-9]+ Safari/[.0-9]+",
+                "\\(KHTML, like Gecko\\) Chrome/(\\d+)\\.0\\.0\\.0 Safari/[.0-9]+",
         )
     }
 }

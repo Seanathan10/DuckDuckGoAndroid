@@ -150,7 +150,6 @@
     <string name="settingsWebTrackingProtectionDescription">Įjungta pagal numatytuosius nustatymus</string>
     <string name="settingsHeadingSettings">Nustatymai</string>
     <string name="settingsPermissionsSetting">Leidimai</string>
-    <string name="settingsAutofillLoginsSetting">Prisijungimai</string>
     <string name="settingsSyncSetting">Sinchronizuoti ir kurti atsarginę kopiją</string>
     <string name="settingsFireButton">Mygtukas „Fire“</string>
 
@@ -503,7 +502,6 @@
     <string name="onboardingFeatureOptionOneClickDataClearing">Duomenų išvalymas vienu spustelėjimu</string>
 
     <!-- Download Confirmation -->
-    <string name="downloadConfirmationContinue">Išsaugoti Atsisiuntimuose</string>
     <string name="downloadConfirmationSaveFileTitle" instruction="Placeholder is the name of a file">Išsaugoti %1$s</string>
     <string name="downloadConfirmationKeepBothFilesText">Palikti abu</string>
     <string name="downloadConfirmationReplaceOldFileText">Pakeisti</string>
@@ -638,8 +636,6 @@
 
     <!-- Autofill -->
     <string name="autofillSnackbarAction" instruction="Label for a button that lets the user view the details for a login credential">Peržiūrėti</string>
-    <string name="autofillLoginSavedSnackbarMessage">Prisijungimas išsaugotas</string>
-    <string name="autofillLoginUpdatedSnackbarMessage">Prisijungimas atnaujintas</string>
 
     <!-- Waitlist Notification -->
     <string name="waitlistNotificationDialogDescription">Ar norėtumėte, kad atsiųstume jums pranešimą, kai ateis jūsų eilė?</string>
@@ -784,4 +780,47 @@
     <!-- Private voice search -->
     <string name="accessibilityVoiceSearchSubtitle">Adreso juostoje pridėkite privačios paieškos balsu parinktį. Garso įrašai nesaugomi ir jais su niekuo nesidalijama, įskaitant „DuckDuckGo“.</string>
     <string name="accessibilityVoiceSearchTitle">Privati paieška balsu</string>
+
+    <!-- Uploading an image from the camera or choosing to use existing image -->
+    <string name="imageCaptureCameraUnavailable">Nepavyko pasiekti fotoaparato</string>
+    <string name="imageCaptureCameraGalleryDisambiguationTitle">Įkelti vaizdą</string>
+    <string name="imageCaptureCameraGalleryDisambiguationGalleryOption">Pasirinkti failą</string>
+    <string name="imageCaptureCameraGalleryDisambiguationCameraOption">Padaryti nuotrauką</string>
+    <string name="imageCaptureCameraPermissionDeniedTitle">Leisti „DuckDuckGo“ prašyti prieigos prie kameros šiame įrenginyje</string>
+    <string name="imageCaptureCameraPermissionDeniedMessage">Svetainės gali naudoti jūsų kamerą tik tada, jei leisite „DuckDuckGo“ prašyti prieigos.</string>
+    <string name="imageCaptureCameraPermissionDeniedPositiveButton">Atidaryti nustatymus</string>
+    <string name="imageCaptureCameraPermissionDeniedNegativeButton">Atšaukti</string>
+
+    <!-- Autofill -->
+    <string name="settingsAutofillLoginsSetting">Slaptažodžiai</string>
+    <string name="autofillLoginSavedSnackbarMessage">Slaptažodis išsaugotas</string>
+    <string name="autofillLoginUpdatedSnackbarMessage">Slaptažodis atnaujintas</string>
+
+    <!-- Bookmarks -->
+    <string name="searchBookmarks">Ieškoti žymių</string>
+    <string name="deleteFolder" instruction="%1$s is the folder name">"Ištrinti %1$s?"</string>
+    <string name="deleteBookmark" instruction="%1$s is the bookmark name">"Ištrinti %1$s žymę?"</string>
+    <string name="bookmarkAddedInBookmarks" instruction="%1$s is the folder name">Žymė įtraukta į %1$s</string>
+    <string name="addToFavorites">Pridėti prie mėgstamų</string>
+    <string name="editBookmark">Redaguoti žymę</string>
+    <string name="importBookmarksDescription">Jei žymės yra išsaugotos kitoje naršyklėje,\ngalite jas importuoti į „DuckDuckGo“.</string>
+    <string name="importBookmarks">Importuoti žymes</string>
+    <string name="noResultsFor" instruction="%1$s is the search term">Rezultatų pagal paiešką „%1$s“ nerasta</string>
+    <string name="removeFromFavorites">Pašalinti iš adresyno</string>
+    <string name="addToFavoritesMenu">Pridėti prie mėgstamų</string>
+    <plurals name="bookmarkFolderDeleteMessage">
+        <item quantity="one">Ar tikrai norite ištrinti šį aplanką ir %1$d elementą?</item>
+        <item quantity="few">Ar tikrai norite ištrinti šį aplanką ir %1$d elementus?</item>
+        <item quantity="many">Ar tikrai norite ištrinti šį aplanką ir %1$d elemento?</item>
+        <item quantity="other">Ar tikrai norite ištrinti šį aplanką ir %1$d elementų?</item>
+    </plurals>
+    <string name="deleteBookmarkConfirmationDescription" instruction="Placeholder is the name of the bookmark">Ar tikrai norite ištrinti &lt;b&gt;%1$s&lt;/b&gt; žymę?</string>
+
+    <!-- Sync Favicons -->
+    <string name="sync_fetch_icons_title">Gauti žymių piktogramas</string>
+    <string name="sync_fetch_icons_subtitle">Automatiškai atsisiųskite sinchronizuotų žymių piktogramas.</string>
+    <string name="faviconsPromptTitle">Atsisiųsti trūkstamas piktogramas?</string>
+    <string name="faviconsPromptMessage">Ar norite, kad šis įrenginys automatiškai atsisiųstų sinchronizuotų žymų piktogramas iš pažymėtų svetainių?</string>
+    <string name="faviconsPromptPrimaryCta">Nuolat atnaujinti žymų piktogramas</string>
+    <string name="faviconsPromptSecondaryCta">Ne dabar</string>
 </resources>

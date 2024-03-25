@@ -150,7 +150,6 @@
     <string name="settingsWebTrackingProtectionDescription">Predvolene povolené</string>
     <string name="settingsHeadingSettings">Nastavenia</string>
     <string name="settingsPermissionsSetting">Oprávnenia</string>
-    <string name="settingsAutofillLoginsSetting">Prihlasovacie údaje</string>
     <string name="settingsSyncSetting">Synchronizácia a zálohovanie</string>
     <string name="settingsFireButton">Tlačidlo Fire</string>
 
@@ -503,7 +502,6 @@
     <string name="onboardingFeatureOptionOneClickDataClearing">Vymazanie údajov 1 kliknutím</string>
 
     <!-- Download Confirmation -->
-    <string name="downloadConfirmationContinue">Uložiť do stiahnutých</string>
     <string name="downloadConfirmationSaveFileTitle" instruction="Placeholder is the name of a file">Uložiť %1$s</string>
     <string name="downloadConfirmationKeepBothFilesText">Nechať si oboje</string>
     <string name="downloadConfirmationReplaceOldFileText">Nahradiť</string>
@@ -638,8 +636,6 @@
 
     <!-- Autofill -->
     <string name="autofillSnackbarAction" instruction="Label for a button that lets the user view the details for a login credential">Zobraziť</string>
-    <string name="autofillLoginSavedSnackbarMessage">Prihlasovacie údaje sa uložili</string>
-    <string name="autofillLoginUpdatedSnackbarMessage">Prihlasovacie údaje sa aktualizovali</string>
 
     <!-- Waitlist Notification -->
     <string name="waitlistNotificationDialogDescription">Chcete, aby sme vám poslali upozornenie, keď na vás príde rad?</string>
@@ -784,4 +780,47 @@
     <!-- Private voice search -->
     <string name="accessibilityVoiceSearchSubtitle">Do panela s adresou pridajte možnosť Súkromné hlasové vyhľadávanie. Zvuk sa neukladá ani sa s nikým nezdieľa, a to vrátane DuckDuckGo.</string>
     <string name="accessibilityVoiceSearchTitle">Súkromné hlasové vyhľadávanie</string>
+
+    <!-- Uploading an image from the camera or choosing to use existing image -->
+    <string name="imageCaptureCameraUnavailable">Nepodarilo sa získať prístup k fotoaparátu</string>
+    <string name="imageCaptureCameraGalleryDisambiguationTitle">Nahrať obrázok</string>
+    <string name="imageCaptureCameraGalleryDisambiguationGalleryOption">Vyberte si súbor</string>
+    <string name="imageCaptureCameraGalleryDisambiguationCameraOption">Urobiť fotografiu</string>
+    <string name="imageCaptureCameraPermissionDeniedTitle">Povoliť aplikácii DuckDuckGo žiadať o prístup k fotoaparátu v tomto zariadení</string>
+    <string name="imageCaptureCameraPermissionDeniedMessage">Lokality môžu používať váš fotoaparát len vtedy, ak povolíte aplikácii DuckDuckGo žiadať o prístup.</string>
+    <string name="imageCaptureCameraPermissionDeniedPositiveButton">Otvoriť nastavenia</string>
+    <string name="imageCaptureCameraPermissionDeniedNegativeButton">Zrušiť</string>
+
+    <!-- Autofill -->
+    <string name="settingsAutofillLoginsSetting">Heslo</string>
+    <string name="autofillLoginSavedSnackbarMessage">Uložené heslo</string>
+    <string name="autofillLoginUpdatedSnackbarMessage">Aktualizácia hesla</string>
+
+    <!-- Bookmarks -->
+    <string name="searchBookmarks">Vyhľadávanie v záložkách</string>
+    <string name="deleteFolder" instruction="%1$s is the folder name">"Zmazať %1$s?"</string>
+    <string name="deleteBookmark" instruction="%1$s is the bookmark name">"Zmazať záložku %1$s?"</string>
+    <string name="bookmarkAddedInBookmarks" instruction="%1$s is the folder name">Záložka pridaná do priečinku %1$s</string>
+    <string name="addToFavorites">Pridať k obľúbeným</string>
+    <string name="editBookmark">Upraviť záložku</string>
+    <string name="importBookmarksDescription">Ak sú vaše záložky uložené v inom prehliadači, môžete ich importovať do aplikácie DuckDuckGo.</string>
+    <string name="importBookmarks">Importovať záložky</string>
+    <string name="noResultsFor" instruction="%1$s is the search term">Žiadne výsledky pre „%1$s”</string>
+    <string name="removeFromFavorites">Odstrániť z obľúbených položiek</string>
+    <string name="addToFavoritesMenu">Pridať k obľúbeným</string>
+    <plurals name="bookmarkFolderDeleteMessage">
+        <item quantity="one">Naozaj chcete odstrániť tento priečinok a %1$d položku?</item>
+        <item quantity="few">Naozaj chcete odstrániť tento priečinok a %1$d položky?</item>
+        <item quantity="many">Naozaj chcete odstrániť tento priečinok a %1$d položky?</item>
+        <item quantity="other">Naozaj chcete odstrániť tento priečinok a %1$d položiek?</item>
+    </plurals>
+    <string name="deleteBookmarkConfirmationDescription" instruction="Placeholder is the name of the bookmark">Naozaj chcete odstrániť záložku používateľa &lt;b&gt;%1$s&lt;/b&gt;?</string>
+
+    <!-- Sync Favicons -->
+    <string name="sync_fetch_icons_title">Prevzatie ikon záložiek</string>
+    <string name="sync_fetch_icons_subtitle">Automatické preberanie ikon pre synchronizované záložky.</string>
+    <string name="faviconsPromptTitle">Chcete si stiahnuť chýbajúce ikony?</string>
+    <string name="faviconsPromptMessage">Chcete, aby toto zariadenie automaticky preberalo ikony synchronizovaných záložiek z webových stránok so záložkami?</string>
+    <string name="faviconsPromptPrimaryCta">Udržujte ikony záložiek aktualizované</string>
+    <string name="faviconsPromptSecondaryCta">Teraz nie</string>
 </resources>

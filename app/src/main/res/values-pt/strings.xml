@@ -150,7 +150,6 @@
     <string name="settingsWebTrackingProtectionDescription">Ativado por predefinição</string>
     <string name="settingsHeadingSettings">Definições</string>
     <string name="settingsPermissionsSetting">Permissões</string>
-    <string name="settingsAutofillLoginsSetting">Inícios de sessão</string>
     <string name="settingsSyncSetting">Sincronização e cópia de segurança</string>
     <string name="settingsFireButton">Botão de proteção</string>
 
@@ -499,7 +498,6 @@
     <string name="onboardingFeatureOptionOneClickDataClearing">Limpar dados com um clique</string>
 
     <!-- Download Confirmation -->
-    <string name="downloadConfirmationContinue">Guardar em Transferências</string>
     <string name="downloadConfirmationSaveFileTitle" instruction="Placeholder is the name of a file">Guardar %1$s</string>
     <string name="downloadConfirmationKeepBothFilesText">Manter os dois</string>
     <string name="downloadConfirmationReplaceOldFileText">Substituir</string>
@@ -634,8 +632,6 @@
 
     <!-- Autofill -->
     <string name="autofillSnackbarAction" instruction="Label for a button that lets the user view the details for a login credential">Visualizar</string>
-    <string name="autofillLoginSavedSnackbarMessage">Início de sessão guardado</string>
-    <string name="autofillLoginUpdatedSnackbarMessage">Início de sessão atualizado</string>
 
     <!-- Waitlist Notification -->
     <string name="waitlistNotificationDialogDescription">Gostaria que lhe enviássemos uma notificação quando chegar a sua vez?</string>
@@ -776,4 +772,45 @@
     <!-- Private voice search -->
     <string name="accessibilityVoiceSearchSubtitle">Adicionar opção de pesquisa privada por voz à barra de endereços. O áudio não é armazenado nem partilhado com ninguém, incluindo o DuckDuckGo.</string>
     <string name="accessibilityVoiceSearchTitle">Pesquisa por voz privada</string>
+
+    <!-- Uploading an image from the camera or choosing to use existing image -->
+    <string name="imageCaptureCameraUnavailable">Não foi possível aceder à câmara</string>
+    <string name="imageCaptureCameraGalleryDisambiguationTitle">Carrega uma imagem</string>
+    <string name="imageCaptureCameraGalleryDisambiguationGalleryOption">Escolher ficheiro</string>
+    <string name="imageCaptureCameraGalleryDisambiguationCameraOption">Tirar fotografia</string>
+    <string name="imageCaptureCameraPermissionDeniedTitle">Permitir que o DuckDuckGo peça acesso à câmara neste dispositivo</string>
+    <string name="imageCaptureCameraPermissionDeniedMessage">Os sites só podem utilizar a tua câmara se autorizares o DuckDuckGo a pedir acesso.</string>
+    <string name="imageCaptureCameraPermissionDeniedPositiveButton">Abrir Definições</string>
+    <string name="imageCaptureCameraPermissionDeniedNegativeButton">Cancelar</string>
+
+    <!-- Autofill -->
+    <string name="settingsAutofillLoginsSetting">Palavras-passe</string>
+    <string name="autofillLoginSavedSnackbarMessage">Palavra-passe guardada</string>
+    <string name="autofillLoginUpdatedSnackbarMessage">Palavra-passe atualizada</string>
+
+    <!-- Bookmarks -->
+    <string name="searchBookmarks">Pesquisar marcadores</string>
+    <string name="deleteFolder" instruction="%1$s is the folder name">"Eliminar %1$s?"</string>
+    <string name="deleteBookmark" instruction="%1$s is the bookmark name">"Eliminar marcador %1$s?"</string>
+    <string name="bookmarkAddedInBookmarks" instruction="%1$s is the folder name">Marcador adicionado em %1$s</string>
+    <string name="addToFavorites">Adicionar aos favoritos</string>
+    <string name="editBookmark">Editar marcador</string>
+    <string name="importBookmarksDescription">Se os teus marcadores estão guardados noutro navegador, podes\nimportá-los para o DuckDuckGo.</string>
+    <string name="importBookmarks">Importar marcadores</string>
+    <string name="noResultsFor" instruction="%1$s is the search term">Nenhum resultado para \"%1$s\"</string>
+    <string name="removeFromFavorites">Remover dos favoritos</string>
+    <string name="addToFavoritesMenu">Adicionar aos favoritos</string>
+    <plurals name="bookmarkFolderDeleteMessage">
+        <item quantity="one">Tem a certeza de que quer eliminar esta pasta e %1$d item?</item>
+        <item quantity="other">Tem a certeza de que quer eliminar esta pasta e %1$d itens?</item>
+    </plurals>
+    <string name="deleteBookmarkConfirmationDescription" instruction="Placeholder is the name of the bookmark">Tens a certeza de que queres eliminar o marcador para &lt;b&gt;%1$s&lt;/b&gt;?</string>
+
+    <!-- Sync Favicons -->
+    <string name="sync_fetch_icons_title">A obter ícones dos marcadores</string>
+    <string name="sync_fetch_icons_subtitle">Transferir automaticamente ícones para os teus marcadores sincronizados.</string>
+    <string name="faviconsPromptTitle">Transferir ícones em falta?</string>
+    <string name="faviconsPromptMessage">Queres que este dispositivo transfira automaticamente os ícones dos marcadores sincronizados dos sites nos marcadores?</string>
+    <string name="faviconsPromptPrimaryCta">Manter os ícones dos marcadores atualizados</string>
+    <string name="faviconsPromptSecondaryCta">Agora não</string>
 </resources>

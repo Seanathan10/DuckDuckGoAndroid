@@ -20,9 +20,9 @@ import android.content.Context
 import android.os.Build
 import android.webkit.WebSettings
 import androidx.core.net.toUri
+import com.duckduckgo.app.browser.UriString
 import com.duckduckgo.app.privacy.db.UserAllowListRepository
 import com.duckduckgo.app.statistics.store.StatisticsDataStore
-import com.duckduckgo.common.utils.UriString
 import com.duckduckgo.common.utils.device.DeviceInfo
 import com.duckduckgo.common.utils.plugins.PluginPoint
 import com.duckduckgo.di.scopes.AppScope
@@ -143,7 +143,7 @@ class RealUserAgentProvider @Inject constructor(
         if (forDesktop) {
             result = result.replace(" Mobile", "")
         }
-        return result
+        return result.replace(AgentRegex.chrome, "$1.0.0.0")
     }
 
     private fun concatWithSpaces(vararg elements: String?): String {
@@ -161,6 +161,7 @@ class RealUserAgentProvider @Inject constructor(
         val safari = Regex("(Safari/[^ ]+) *")
         val version = Regex("(Version/[^ ]+) *")
         val platform = Regex(".*Linux; Android \\d+")
+        val chrome = Regex("(Chrome/\\d+)\\.\\d+\\.\\d+\\.\\d+")
     }
 
     companion object {

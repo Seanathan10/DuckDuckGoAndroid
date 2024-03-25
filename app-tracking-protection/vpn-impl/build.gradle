@@ -37,6 +37,9 @@ android {
         }
     }
     namespace 'com.duckduckgo.mobile.android.vpn'
+    compileOptions {
+        coreLibraryDesugaringEnabled = true
+    }
 }
 
 dependencies {
@@ -77,6 +80,7 @@ dependencies {
 
     // multi-process shared preferences
     implementation "com.frybits.harmony:harmony:_"
+    implementation 'com.frybits.harmony:harmony-crypto:_'
 
     // Security crypto
     implementation AndroidX.security.crypto
@@ -99,9 +103,6 @@ dependencies {
         // conflicts with mockito due to direct inclusion of byte buddy
         exclude group: "org.jetbrains.kotlinx", module: "kotlinx-coroutines-debug"
     }
-
-    implementation "com.jakewharton.threetenabp:threetenabp:_"
-    testImplementation "org.threeten:threetenbp:_"
 
     implementation "com.squareup.logcat:logcat:_"
 
@@ -134,4 +135,5 @@ dependencies {
     testImplementation Testing.robolectric
     testImplementation project(':common-test')
     testImplementation project(':vpn-api-test')
+    testImplementation project(':feature-toggles-test')
 }

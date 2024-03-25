@@ -35,7 +35,6 @@ import com.duckduckgo.privacy.config.store.PrivacyFeatureTogglesRepository
 import com.duckduckgo.privacy.config.store.RealPrivacyConfigRepository
 import com.duckduckgo.privacy.config.store.features.unprotectedtemporary.RealUnprotectedTemporaryRepository
 import com.duckduckgo.privacy.config.store.features.unprotectedtemporary.UnprotectedTemporaryRepository
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.json.JSONObject
@@ -51,7 +50,6 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.robolectric.RuntimeEnvironment
 
-@ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
 class RealPrivacyConfigPersisterTest {
     @get:Rule var coroutineRule = CoroutineTestRule()
@@ -107,12 +105,21 @@ class RealPrivacyConfigPersisterTest {
                 db,
                 TestScope(),
                 coroutineRule.testDispatcherProvider,
+                isMainProcess = true,
             )
     }
 
     @Test
-    fun whenPluginPointSignatureThenReturnUniqueSignature() {
-        assertEquals(pluginPoint.signature(), pluginPoint.signature())
+    fun whenHashIsNullSignatureReturnsFeatureName() {
+        val expected = pluginPoint.getPlugins().sumOf { it.featureName.hashCode() }
+        assertEquals(expected, pluginPoint.signature())
+    }
+
+    @Test
+    fun whenHashIsNotNullSignatureReturnsHash() {
+        val pluginPoint = FakePrivacyFeaturePluginPoint(listOf(HashedFakePrivacyFeaturePlugin()))
+        val expected = pluginPoint.getPlugins().sumOf { it.hash().hashCode() }
+        assertEquals(expected, pluginPoint.signature())
     }
 
     @Test
@@ -232,7 +239,7 @@ class RealPrivacyConfigPersisterTest {
         }
     }
 
-    class FakePrivacyFeaturePlugin : PrivacyFeaturePlugin {
+    private class FakePrivacyFeaturePlugin : PrivacyFeaturePlugin {
         var count = 0
 
         override fun store(
@@ -245,6 +252,22 @@ class RealPrivacyConfigPersisterTest {
 
         override val featureName: String =
             PrivacyFeatureName.GpcFeatureName.value
+    }
+
+    private class HashedFakePrivacyFeaturePlugin : PrivacyFeaturePlugin {
+        var count = 0
+
+        override fun store(
+            featureName: String,
+            jsonString: String,
+        ): Boolean {
+            count++
+            return true
+        }
+
+        override val featureName: String = "HashedFakePrivacyFeaturePlugin"
+
+        override fun hash() = "HashedFakePrivacyFeaturePluginHash"
     }
 
     class FakePrivacyVariantManagerPlugin : PrivacyFeaturePlugin {

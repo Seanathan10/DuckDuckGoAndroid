@@ -41,6 +41,7 @@ dependencies {
     implementation project(':feature-toggles-api')
     implementation project(':privacy-config-api')
     implementation project(':navigation-api')
+    implementation project(':subscriptions-api')
 
     implementation AndroidX.appCompat
     implementation AndroidX.constraintLayout
@@ -53,7 +54,7 @@ dependencies {
     implementation KotlinX.coroutines.core
     implementation Square.retrofit2.retrofit
     implementation Square.retrofit2.converter.moshi
-    implementation "com.jakewharton.threetenabp:threetenabp:_"
+    implementation "com.squareup.moshi:moshi-kotlin:_"
 
     // Lottie
     implementation "com.airbnb.android:lottie:_"
@@ -66,7 +67,6 @@ dependencies {
     testImplementation AndroidX.test.ext.junit
     testImplementation "org.mockito.kotlin:mockito-kotlin:_"
     testImplementation Testing.robolectric
-    testImplementation "org.threeten:threetenbp:_"
 
     // WorkManager
     implementation AndroidX.work.runtimeKtx
@@ -103,5 +103,8 @@ android {
     }
     defaultConfig {
         buildConfigField "String", "NETP_DEBUG_SERVER_TOKEN", "\"${NETP_DEBUG_SERVER_TOKEN}\""
+    }
+    compileOptions {
+        coreLibraryDesugaringEnabled = true
     }
 }

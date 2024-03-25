@@ -23,6 +23,7 @@ import com.duckduckgo.app.brokensite.model.ReportFlow
 import com.duckduckgo.app.pixels.AppPixelName
 import com.duckduckgo.app.statistics.model.Atb
 import com.duckduckgo.app.statistics.pixels.Pixel
+import com.duckduckgo.app.statistics.pixels.Pixel.PixelType.COUNT
 import com.duckduckgo.app.statistics.store.StatisticsDataStore
 import com.duckduckgo.app.trackerdetection.db.TdsMetadataDao
 import com.duckduckgo.appbuildconfig.api.AppBuildConfig
@@ -35,12 +36,13 @@ import com.duckduckgo.privacy.config.api.Gpc
 import com.duckduckgo.privacy.config.api.PrivacyConfig
 import com.duckduckgo.privacy.config.api.PrivacyConfigData
 import com.duckduckgo.privacy.config.impl.network.JSONObjectAdapter
+import com.duckduckgo.privacyprotectionspopup.api.PrivacyProtectionsPopupExperimentExternalPixels
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import java.net.URLEncoder
 import java.util.*
 import java.util.regex.Pattern
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
@@ -58,11 +60,9 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.robolectric.ParameterizedRobolectricTestRunner
 
-@ExperimentalCoroutinesApi
 @RunWith(ParameterizedRobolectricTestRunner::class)
 class BrokenSitesMultipleReportReferenceTest(private val testCase: MultipleReportTestCase) {
 
-    @ExperimentalCoroutinesApi
     @get:Rule
     var coroutineRule = CoroutineTestRule()
 
@@ -83,6 +83,10 @@ class BrokenSitesMultipleReportReferenceTest(private val testCase: MultipleRepor
     private val mockPrivacyConfig: PrivacyConfig = mock()
 
     private val mockBrokenSiteLastSentReport: BrokenSiteLastSentReport = mock()
+
+    private val privacyProtectionsPopupExperimentExternalPixels: PrivacyProtectionsPopupExperimentExternalPixels = mock {
+        runBlocking { whenever(mock.getPixelParams()).thenReturn(emptyMap()) }
+    }
 
     private lateinit var testee: BrokenSiteSubmitter
 
@@ -124,6 +128,7 @@ class BrokenSitesMultipleReportReferenceTest(private val testCase: MultipleRepor
             mock(),
             mock(),
             mockBrokenSiteLastSentReport,
+            privacyProtectionsPopupExperimentExternalPixels,
         )
     }
 
@@ -177,7 +182,7 @@ class BrokenSitesMultipleReportReferenceTest(private val testCase: MultipleRepor
 
             val paramsCaptor = argumentCaptor<Map<String, String>>()
             val encodedParamsCaptor = argumentCaptor<Map<String, String>>()
-            verify(mockPixel).fire(eq(AppPixelName.BROKEN_SITE_REPORT.pixelName), paramsCaptor.capture(), encodedParamsCaptor.capture())
+            verify(mockPixel).fire(eq(AppPixelName.BROKEN_SITE_REPORT.pixelName), paramsCaptor.capture(), encodedParamsCaptor.capture(), eq(COUNT))
 
             val params = paramsCaptor.firstValue
             val encodedParams = encodedParamsCaptor.firstValue

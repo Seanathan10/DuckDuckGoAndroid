@@ -133,7 +133,7 @@
     <!-- Exclusion List -->
     <string name="atp_ExclusionListActivityTitle">Alle apper</string>
     <string name="atp_ExcludedAppsFeature">App Tracking Protection oppdager og blokkerer appsporere fra andre selskaper, for eksempel når Facebook prøver å spore deg i en helseapp. Selskaper kan fortsatt spore deg i apper de eier.\n\nHvis en app ikke fungerer som forventet, kan du prøve å deaktivere beskyttelsen for den appen.</string>
-    <string name="atp_ExcludedAppsEnabledLabel">Mens funksjonen beta-testes kan DuckDuckGo deaktivere beskyttelsen for enkelte apper for å løse kjente problemer med lasting av innhold. Egendefinerte innstillinger blir ikke endret med mindre du gjenoppretter til standardinnstillingene.</string>
+    <string name="atp_ExcludedAppsEnabledLabel">DuckDuckGo kan deaktivere beskyttelse på enkelte apper for å løse kjente problemer med lasting av innhold. Egendefinerte innstillinger blir ikke endret med mindre du gjenoppretter til standardinnstillingene.</string>
     <string name="atp_ExcludedAppsDisabledLabel"><b>App Tracking Protection er deaktivert</b> Har App Tracking Protection forårsaket et problem med appene dine? <annotation type="report_issues_link">Rapporter problemer</annotation></string>
     <string name="atp_ExcludedAppsReport">Rapporter et problem med en annen app</string>
     <string name="atp_ExcludedReasonManuallyDisabled">Manuelt deaktivert</string>
@@ -219,7 +219,6 @@
         <item quantity="one">App</item>
         <item quantity="other">Apper</item>
     </plurals>
-    <string name="atp_ActivityEnabledLabel">Denne funksjonen er i beta. Har du lagt merke til et problem med en app? <annotation type="app_settings_link">Rapporter et problem.</annotation></string>
     <string name="atp_ActivityDisabledLabel"><b>App Tracking Protection er deaktivert</b>\nHar appsporingsbeskyttelse forårsaket et problem med appene dine? <annotation type="report_issues_link">Rapporter problemer</annotation></string>
     <string name="atp_ActivityDisabledBySystemLabel"><b>Android deaktiverte App Tracking Protection</b>. Vil du forhindre at dette skjer igjen? <annotation type="re_enable_link">Aktiver på nytt</annotation></string>
     <string name="atp_ActivityRevokedLabel"><b>App Tracking Protection er deaktivert.</b>\nEn VPN-app på enheten din kan ha deaktivert den. Bruk bryteren ovenfor for å aktivere på nytt.</string>
@@ -395,7 +394,7 @@
     <string name="atp_ExcludeAppsManuallyCTANotNow">Ikke nå</string>
     <string name="atp_ActivityRecentActivityHeader">Aktivitet</string>
     <string name="atp_ActivityManageProtectionLabel">Har du problemer?</string>
-    <string name="atp_ActivityEnabledBannerLabel">Under beta er beskyttelsen for enkelte apper automatisk deaktivert. <annotation type="app_settings_link">Vis apper</annotation></string>
+    <string name="atp_ActivityEnabledBannerLabel">Beskyttelse for enkelte apper deaktiveres automatisk. <annotation type="app_settings_link">Vis apper</annotation></string>
     <string name="atp_ActivityDescription">Blokkerte sporingsforsøk vises her</string>
     <plurals name="atp_ActivityProtectedApps" instruction="Placeholder is the number of apps that are protected">
         <item quantity="one">%1$s av appene dine er beskyttet mot skjulte sporere vi finner som prøver å få tilgang til personopplysningene dine</item>
@@ -414,7 +413,7 @@
     <string name="atp_ExcludedAppsFilterMenuUnprotectedLabel">Beskyttelse deaktivert</string>
     <string name="atp_ExcludedAppsFilterMenuAllLabel">Alle</string>
     <string name="atp_ActivityViewAppsLabel">Vis apper</string>
-    <string name="atp_ActivityEnabledMoreThanADayLabel">Denne funksjonen er i beta. Har du problemer med en app? <annotation type="app_settings_link"> Hjelp oss å bli bedre</annotation></string>
+    <string name="atp_ActivityEnabledMoreThanADayLabel">Har du problemer med en app? <annotation type="app_settings_link"> Hjelp oss å bli bedre</annotation></string>
     <string name="atp_ExcludedAppsEnabledLearnWhyLabel">Noen apper kan få problemer når App Tracking Protection er aktivert.\n<annotation type="learn_why_link">Finn ut hvorfor</annotation></string>
     <string name="atp_ExcludedAppsDisabledLearnWhyLabel">Beskyttelse er deaktivert for apper med kjente problemer. Du kan aktivere disse appene, men de fungerer kanskje ikke som forventet. <annotation type="learn_why_link">Finn ut hvorfor</annotation></string>
 

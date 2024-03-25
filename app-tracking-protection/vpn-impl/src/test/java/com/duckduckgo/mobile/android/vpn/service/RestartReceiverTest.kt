@@ -22,7 +22,6 @@ import com.duckduckgo.appbuildconfig.api.AppBuildConfig
 import com.duckduckgo.appbuildconfig.api.BuildFlavor
 import com.duckduckgo.common.test.CoroutineTestRule
 import com.duckduckgo.mobile.android.vpn.state.VpnStateMonitor
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -30,7 +29,6 @@ import org.junit.runner.RunWith
 import org.mockito.kotlin.*
 
 @RunWith(AndroidJUnit4::class)
-@OptIn(ExperimentalCoroutinesApi::class)
 class RestartReceiverTest {
 
     @get:Rule
@@ -58,7 +56,7 @@ class RestartReceiverTest {
         receiver.onVpnStarted(coroutineRule.testScope)
 
         verify(context).unregisterReceiver(any())
-        verify(context).registerReceiver(any(), any())
+        verify(context).registerReceiver(any(), any(), isNull(), isNull(), any())
     }
 
     @Test
@@ -68,26 +66,26 @@ class RestartReceiverTest {
         receiver.onVpnStarted(coroutineRule.testScope)
 
         verify(context, never()).unregisterReceiver(any())
-        verify(context, never()).registerReceiver(any(), any())
+        verify(context, never()).registerReceiver(any(), any(), isNull(), isNull(), any())
     }
 
     @Test
     fun whenInternalBuildThenUnregisterReceiverOnStopVpn() {
         whenever(appBuildConfig.flavor).thenReturn(BuildFlavor.INTERNAL)
 
-        receiver.onVpnStopped(coroutineRule.testScope, VpnStateMonitor.VpnStopReason.SELF_STOP)
+        receiver.onVpnStopped(coroutineRule.testScope, VpnStateMonitor.VpnStopReason.SELF_STOP())
 
         verify(context).unregisterReceiver(any())
-        verify(context, never()).registerReceiver(any(), any())
+        verify(context, never()).registerReceiver(any(), any(), isNull(), isNull(), any())
     }
 
     @Test
     fun whenNotInternalBuildThenUnregisterReceiverOnStopVpn() {
         whenever(appBuildConfig.flavor).thenReturn(BuildFlavor.PLAY)
 
-        receiver.onVpnStopped(coroutineRule.testScope, VpnStateMonitor.VpnStopReason.SELF_STOP)
+        receiver.onVpnStopped(coroutineRule.testScope, VpnStateMonitor.VpnStopReason.SELF_STOP())
 
         verify(context).unregisterReceiver(any())
-        verify(context, never()).registerReceiver(any(), any())
+        verify(context, never()).registerReceiver(any(), any(), isNull(), isNull(), any())
     }
 }

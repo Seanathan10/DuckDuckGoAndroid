@@ -46,11 +46,9 @@ import com.duckduckgo.privacy.config.store.features.unprotectedtemporary.RealUnp
 import com.duckduckgo.privacy.config.store.features.unprotectedtemporary.UnprotectedTemporaryRepository
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import org.mockito.kotlin.mock
 
-@ExperimentalCoroutinesApi
 class ReferenceTestUtilities(
     db: PrivacyConfigDatabase,
     dispatcherProvider: DispatcherProvider,
@@ -59,12 +57,12 @@ class ReferenceTestUtilities(
 
     var privacyRepository: PrivacyConfigRepository = RealPrivacyConfigRepository(db)
     var privacyFeatureTogglesRepository: PrivacyFeatureTogglesRepository = mock()
-    var unprotectedTemporaryRepository: UnprotectedTemporaryRepository = RealUnprotectedTemporaryRepository(db, TestScope(), dispatcherProvider)
-    var contentBlockingRepository: ContentBlockingRepository = RealContentBlockingRepository(db, TestScope(), dispatcherProvider)
-    var httpsRepository: HttpsRepository = RealHttpsRepository(db, TestScope(), dispatcherProvider)
-    var drmRepository: DrmRepository = RealDrmRepository(db, TestScope(), dispatcherProvider)
-    var gpcRepository: GpcRepository = RealGpcRepository(mock(), db, TestScope(), dispatcherProvider)
-    var trackerAllowlistRepository: TrackerAllowlistRepository = RealTrackerAllowlistRepository(db, TestScope(), dispatcherProvider)
+    var unprotectedTemporaryRepository: UnprotectedTemporaryRepository = RealUnprotectedTemporaryRepository(db, TestScope(), dispatcherProvider, true)
+    var contentBlockingRepository: ContentBlockingRepository = RealContentBlockingRepository(db, TestScope(), dispatcherProvider, true)
+    var httpsRepository: HttpsRepository = RealHttpsRepository(db, TestScope(), dispatcherProvider, true)
+    var drmRepository: DrmRepository = RealDrmRepository(db, TestScope(), dispatcherProvider, true)
+    var gpcRepository: GpcRepository = RealGpcRepository(mock(), db, TestScope(), dispatcherProvider, true)
+    var trackerAllowlistRepository: TrackerAllowlistRepository = RealTrackerAllowlistRepository(db, TestScope(), dispatcherProvider, true)
 
     // Add your plugin to this list in order for it to be tested against some basic reference tests
     private fun getPrivacyFeaturePlugins(): List<PrivacyFeaturePlugin> {

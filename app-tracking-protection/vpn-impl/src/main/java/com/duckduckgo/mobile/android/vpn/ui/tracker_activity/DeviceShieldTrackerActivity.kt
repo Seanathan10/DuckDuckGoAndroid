@@ -48,7 +48,7 @@ import com.duckduckgo.common.ui.viewbinding.viewBinding
 import com.duckduckgo.common.utils.DispatcherProvider
 import com.duckduckgo.common.utils.extensions.launchAlwaysOnSystemSettings
 import com.duckduckgo.di.scopes.ActivityScope
-import com.duckduckgo.mobile.android.app.tracking.ui.AppTrackerActivityWithEmptyParams
+import com.duckduckgo.mobile.android.app.tracking.ui.AppTrackingProtectionScreens.AppTrackerActivityWithEmptyParams
 import com.duckduckgo.mobile.android.vpn.AppTpVpnFeature
 import com.duckduckgo.mobile.android.vpn.R
 import com.duckduckgo.mobile.android.vpn.VpnFeaturesRegistry
@@ -445,7 +445,7 @@ class DeviceShieldTrackerActivity :
 
     @SuppressLint("InlinedApi")
     private fun openVPNSettings() {
-        this.launchAlwaysOnSystemSettings(appBuildConfig.sdkInt)
+        this.launchAlwaysOnSystemSettings()
     }
 
     fun onVpnConflictDialogContinue() {
@@ -571,7 +571,7 @@ class DeviceShieldTrackerActivity :
 
             val (disabledLabel, annotation) = if (runningState.stopReason == REVOKED) {
                 R.string.atp_ActivityRevokedLabel to REPORT_ISSUES_ANNOTATION
-            } else if (runningState.stopReason == SELF_STOP) {
+            } else if (runningState.stopReason is SELF_STOP) {
                 R.string.atp_ActivityDisabledLabel to REPORT_ISSUES_ANNOTATION
             } else {
                 R.string.atp_ActivityDisabledBySystemLabel to RE_ENABLE_ANNOTATION

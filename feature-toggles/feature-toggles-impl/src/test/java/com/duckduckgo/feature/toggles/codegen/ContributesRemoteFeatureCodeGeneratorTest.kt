@@ -34,7 +34,6 @@ import com.squareup.anvil.annotations.ContributesMultibinding
 import dagger.Lazy
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -42,7 +41,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
 import org.mockito.kotlin.whenever
 
 @RunWith(AndroidJUnit4::class)
@@ -50,21 +48,32 @@ class ContributesRemoteFeatureCodeGeneratorTest {
 
     private val context: Context = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext
     private lateinit var testFeature: TestTriggerFeature
+    private lateinit var anotherTestFeature: AnotherTestTriggerFeature
     private val appBuildConfig: AppBuildConfig = mock()
     private lateinit var variantManager: FakeVariantManager
+    private lateinit var toggleStore: FakeToggleStore
 
     @Before
     fun setup() {
         variantManager = FakeVariantManager()
+        toggleStore = FakeToggleStore()
         whenever(appBuildConfig.flavor).thenReturn(PLAY)
         testFeature = FeatureToggles.Builder(
-            FakeToggleStore(),
+            toggleStore,
             featureName = "testFeature",
             appVersionProvider = { appBuildConfig.versionCode },
             flavorNameProvider = { appBuildConfig.flavor.name },
             appVariantProvider = { variantManager.getVariantKey() },
-            forceDefaultVariant = { variantManager.saveVariants(emptyList()) },
+            forceDefaultVariant = { variantManager.updateVariants(emptyList()) },
         ).build().create(TestTriggerFeature::class.java)
+        anotherTestFeature = FeatureToggles.Builder(
+            toggleStore,
+            featureName = "testFeature",
+            appVersionProvider = { appBuildConfig.versionCode },
+            flavorNameProvider = { appBuildConfig.flavor.name },
+            appVariantProvider = { variantManager.getVariantKey() },
+            forceDefaultVariant = { variantManager.updateVariants(emptyList()) },
+        ).build().create(AnotherTestTriggerFeature::class.java)
     }
 
     @Test
@@ -113,6 +122,227 @@ class ContributesRemoteFeatureCodeGeneratorTest {
         assertEquals(TriggerTestScope::class, annotation.scope)
         assertEquals(PrivacyFeaturePlugin::class, annotation.boundType)
         assertTrue(annotation.ignoreQualifier)
+    }
+
+    @Test
+    fun `re-evaluate feature state when feature hash is null`() {
+        val feature = generatedFeatureNewInstance()
+
+        val privacyPlugin = (feature as PrivacyFeaturePlugin)
+
+        assertTrue(
+            privacyPlugin.store(
+                "testFeature",
+                """
+                {
+                    "state": "disabled",
+                    "features": {
+                        "missingFeature": {
+                            "state": "enabled"
+                        },
+                        "fooFeature": {
+                            "state": "enabled"
+                        }
+                    }
+                }
+                """.trimIndent(),
+            ),
+        )
+        assertFalse(testFeature.self().isEnabled())
+        assertTrue(testFeature.fooFeature().isEnabled())
+
+        assertTrue(
+            privacyPlugin.store(
+                "testFeature",
+                """
+                {
+                    "state": "enabled",
+                    "features": {
+                        "missingFeature": {
+                            "state": "enabled"
+                        },
+                        "fooFeature": {
+                            "state": "disabled"
+                        }
+                    }
+                }
+                """.trimIndent(),
+            ),
+        )
+        assertTrue(testFeature.self().isEnabled())
+        assertFalse(testFeature.fooFeature().isEnabled())
+    }
+
+    @Test
+    fun `do not re-evaluate feature state if hash hasn't changed`() {
+        val feature = generatedFeatureNewInstance()
+
+        val privacyPlugin = (feature as PrivacyFeaturePlugin)
+
+        assertTrue(
+            privacyPlugin.store(
+                "testFeature",
+                """
+                {
+                    "hash": "1",
+                    "state": "disabled",
+                    "features": {
+                        "missingFeature": {
+                            "state": "enabled"
+                        },
+                        "fooFeature": {
+                            "state": "enabled"
+                        }
+                    }
+                }
+                """.trimIndent(),
+            ),
+        )
+        assertFalse(testFeature.self().isEnabled())
+        assertTrue(testFeature.fooFeature().isEnabled())
+
+        assertTrue(
+            privacyPlugin.store(
+                "testFeature",
+                """
+                {
+                    "hash": "1",
+                    "state": "enabled",
+                    "features": {
+                        "missingFeature": {
+                            "state": "enabled"
+                        },
+                        "fooFeature": {
+                            "state": "disabled"
+                        }
+                    }
+                }
+                """.trimIndent(),
+            ),
+        )
+        assertFalse(testFeature.self().isEnabled())
+        assertTrue(testFeature.fooFeature().isEnabled())
+    }
+
+    @Test
+    fun `re-evaluate feature state if hash changed`() {
+        val feature = generatedFeatureNewInstance()
+
+        val privacyPlugin = (feature as PrivacyFeaturePlugin)
+
+        assertTrue(
+            privacyPlugin.store(
+                "testFeature",
+                """
+                {
+                    "hash": "1",
+                    "state": "disabled",
+                    "features": {
+                        "missingFeature": {
+                            "state": "enabled"
+                        },
+                        "fooFeature": {
+                            "state": "enabled"
+                        }
+                    }
+                }
+                """.trimIndent(),
+            ),
+        )
+        assertFalse(testFeature.self().isEnabled())
+        assertTrue(testFeature.fooFeature().isEnabled())
+
+        assertTrue(
+            privacyPlugin.store(
+                "testFeature",
+                """
+                {
+                    "hash": "2",
+                    "state": "enabled",
+                    "features": {
+                        "missingFeature": {
+                            "state": "enabled"
+                        },
+                        "fooFeature": {
+                            "state": "disabled"
+                        }
+                    }
+                }
+                """.trimIndent(),
+            ),
+        )
+        assertTrue(testFeature.self().isEnabled())
+        assertFalse(testFeature.fooFeature().isEnabled())
+    }
+
+    @Test
+    fun `re-evaluate feature when already preset in remote config but just added to client`() {
+        fun createAnotherFooFeature(): Any {
+            return Class
+                .forName("com.duckduckgo.feature.toggles.codegen.AnotherTestTriggerFeature_RemoteFeature")
+                .getConstructor(
+                    FeatureExceptions.Store::class.java,
+                    FeatureSettings.Store::class.java,
+                    dagger.Lazy::class.java as Class<*>,
+                    AppBuildConfig::class.java,
+                    VariantManager::class.java,
+                    Context::class.java,
+                ).newInstance(
+                    FeatureExceptions.EMPTY_STORE,
+                    FeatureSettings.EMPTY_STORE,
+                    Lazy { anotherTestFeature },
+                    appBuildConfig,
+                    variantManager,
+                    context,
+                )
+        }
+
+        assertFalse(anotherTestFeature.newFooFeature().isEnabled())
+
+        assertTrue(
+            (generatedFeatureNewInstance() as PrivacyFeaturePlugin).store(
+                "testFeature",
+                """
+                {
+                    "hash": "1",
+                    "state": "disabled",
+                    "features": {
+                        "newFooFeature": {
+                            "state": "enabled"
+                        },
+                        "fooFeature": {
+                            "state": "enabled"
+                        }
+                    }
+                }
+                """.trimIndent(),
+            ),
+        )
+        assertFalse(testFeature.self().isEnabled())
+        assertTrue(testFeature.fooFeature().isEnabled())
+        assertFalse(anotherTestFeature.newFooFeature().isEnabled())
+
+        assertTrue(
+            (createAnotherFooFeature() as PrivacyFeaturePlugin).store(
+                "testFeature",
+                """
+                {
+                    "hash": "1",
+                    "state": "disabled",
+                    "features": {
+                        "newFooFeature": {
+                            "state": "enabled"
+                        },
+                        "fooFeature": {
+                            "state": "enabled"
+                        }
+                    }
+                }
+                """.trimIndent(),
+            ),
+        )
+
+        assertTrue(anotherTestFeature.newFooFeature().isEnabled())
     }
 
     @Test
@@ -527,7 +757,7 @@ class ContributesRemoteFeatureCodeGeneratorTest {
         assertTrue(privacyPlugin.store("testFeature", jsonFeature))
         assertTrue(testFeature.self().isEnabled())
         assertFalse(testFeature.fooFeature().isEnabled())
-        assertNull(testFeature.fooFeature().rolloutStep())
+        assertNull(testFeature.fooFeature().rolloutThreshold())
     }
 
     @Test
@@ -565,7 +795,7 @@ class ContributesRemoteFeatureCodeGeneratorTest {
         assertTrue(privacyPlugin.store("testFeature", jsonFeature))
         assertTrue(testFeature.self().isEnabled())
         assertTrue(testFeature.fooFeature().isEnabled())
-        assertEquals(4, testFeature.fooFeature().rolloutStep())
+        assertTrue(testFeature.fooFeature().rolloutThreshold()!! < testFeature.fooFeature().getRawStoredState()!!.rollout!!.last())
     }
 
     @Test
@@ -600,7 +830,7 @@ class ContributesRemoteFeatureCodeGeneratorTest {
 
         assertTrue(testFeature.self().isEnabled())
         assertTrue(testFeature.fooFeature().isEnabled())
-        assertEquals(1, testFeature.fooFeature().rolloutStep())
+        assertTrue(testFeature.fooFeature().rolloutThreshold()!! < testFeature.fooFeature().getRawStoredState()!!.rollout!!.last())
     }
 
     @Test
@@ -646,12 +876,12 @@ class ContributesRemoteFeatureCodeGeneratorTest {
 
         assertTrue(testFeature.self().isEnabled())
         assertTrue(testFeature.fooFeature().isEnabled())
-        assertEquals(1, testFeature.fooFeature().rolloutStep())
+        assertTrue(testFeature.fooFeature().rolloutThreshold()!! < testFeature.fooFeature().getRawStoredState()!!.rollout!!.last())
 
         assertTrue(privacyPlugin.store("testFeature", jsonDisabled))
         assertTrue(testFeature.self().isEnabled())
         assertFalse(testFeature.fooFeature().isEnabled())
-        assertEquals(1, testFeature.fooFeature().rolloutStep())
+        assertTrue(testFeature.fooFeature().rolloutThreshold()!! < testFeature.fooFeature().getRawStoredState()!!.rollout!!.last())
     }
 
     @Test
@@ -710,7 +940,7 @@ class ContributesRemoteFeatureCodeGeneratorTest {
 
         assertTrue(testFeature.self().isEnabled())
         assertFalse(testFeature.fooFeature().isEnabled())
-        assertEquals(1, testFeature.fooFeature().rolloutStep())
+        assertTrue(testFeature.fooFeature().rolloutThreshold()!! < testFeature.fooFeature().getRawStoredState()!!.rollout!!.last())
 
         // re-enable the incremental rollout
         assertTrue(
@@ -737,7 +967,132 @@ class ContributesRemoteFeatureCodeGeneratorTest {
         )
         assertTrue(testFeature.self().isEnabled())
         assertTrue(testFeature.fooFeature().isEnabled())
-        assertEquals(1, testFeature.fooFeature().rolloutStep())
+        assertTrue(testFeature.fooFeature().rolloutThreshold()!! < testFeature.fooFeature().getRawStoredState()!!.rollout!!.last())
+    }
+
+    @Test
+    // see https://app.asana.com/0/488551667048375/1206413338208929
+    fun `backwards compatibility test - feature was enabled remains enabled and rollout threshold not set`() {
+        whenever(appBuildConfig.versionCode).thenReturn(1)
+        val feature = generatedFeatureNewInstance()
+
+        val privacyPlugin = (feature as PrivacyFeaturePlugin)
+        // set up initial state, incremental rollout and enabled
+        toggleStore.set(
+            "testFeature_fooFeature",
+            Toggle.State(
+                remoteEnableState = true,
+                enable = true,
+                rollout = listOf(50.0),
+            ),
+        )
+        assertTrue(
+            privacyPlugin.store(
+                "testFeature",
+                """
+                    {
+                        "state": "enabled",
+                        "features": {
+                            "fooFeature": {
+                                "state": "enabled",
+                                "rollout": {
+                                    "steps": [
+                                        {
+                                            "percent": 50
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                """.trimIndent(),
+            ),
+        )
+        assertTrue(testFeature.self().isEnabled())
+        assertTrue(testFeature.fooFeature().isEnabled())
+        assertNull(testFeature.fooFeature().rolloutThreshold())
+    }
+
+    @Test
+    // see https://app.asana.com/0/488551667048375/1206413338208929
+    fun `backwards compatibility test - feature was disabled set rollout threshold`() {
+        whenever(appBuildConfig.versionCode).thenReturn(1)
+        val feature = generatedFeatureNewInstance()
+
+        val privacyPlugin = (feature as PrivacyFeaturePlugin)
+        // set up initial state, incremental rollout and enabled
+        toggleStore.set(
+            "testFeature_fooFeature",
+            Toggle.State(
+                remoteEnableState = true,
+                enable = false,
+                rollout = listOf(50.0),
+            ),
+        )
+        val step = 50.0
+        assertTrue(
+            privacyPlugin.store(
+                "testFeature",
+                """
+                    {
+                        "state": "enabled",
+                        "features": {
+                            "fooFeature": {
+                                "state": "enabled",
+                                "rollout": {
+                                    "steps": [
+                                        {
+                                            "percent": $step
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                """.trimIndent(),
+            ),
+        )
+        assertTrue(testFeature.self().isEnabled())
+        val threshold = testFeature.fooFeature().rolloutThreshold()
+        assertNotNull(threshold)
+        assertEquals(step >= threshold!!, testFeature.fooFeature().isEnabled())
+    }
+
+    @Test
+    // see https://app.asana.com/0/488551667048375/1206413338208929
+    fun `backwards compatibility test - feature was null set rollout threshold`() {
+        whenever(appBuildConfig.versionCode).thenReturn(1)
+        val feature = generatedFeatureNewInstance()
+
+        val privacyPlugin = (feature as PrivacyFeaturePlugin)
+        // set up initial state, incremental rollout and enabled
+        val step = 50.0
+        assertTrue(
+            privacyPlugin.store(
+                "testFeature",
+                """
+                    {
+                        "state": "enabled",
+                        "features": {
+                            "fooFeature": {
+                                "state": "enabled",
+                                "rollout": {
+                                    "steps": [
+                                        {
+                                            "percent": $step
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                """.trimIndent(),
+            ),
+        )
+        assertTrue(testFeature.self().isEnabled())
+        val threshold = testFeature.fooFeature().rolloutThreshold()
+        assertNotNull(threshold)
+        assertEquals(step >= threshold!!, testFeature.fooFeature().isEnabled())
     }
 
     @Test
@@ -766,7 +1121,7 @@ class ContributesRemoteFeatureCodeGeneratorTest {
 
         assertFalse(testFeature.self().isEnabled())
         assertFalse(testFeature.fooFeature().isEnabled())
-        assertNull(testFeature.fooFeature().rolloutStep())
+        assertNull(testFeature.fooFeature().rolloutThreshold())
 
         // enable parent feature
         assertTrue(
@@ -784,6 +1139,7 @@ class ContributesRemoteFeatureCodeGeneratorTest {
                 """.trimIndent(),
             ),
         )
+        assertNull(testFeature.fooFeature().rolloutThreshold())
 
         // add rollout information to sub-feature, still disabled
         assertTrue(
@@ -811,7 +1167,7 @@ class ContributesRemoteFeatureCodeGeneratorTest {
 
         assertTrue(testFeature.self().isEnabled())
         assertFalse(testFeature.fooFeature().isEnabled())
-        assertNull(testFeature.fooFeature().rolloutStep())
+        assertNull(testFeature.fooFeature().rolloutThreshold())
 
         // add more rollout information to sub-feature, still disabled
         assertTrue(
@@ -845,7 +1201,7 @@ class ContributesRemoteFeatureCodeGeneratorTest {
 
         assertTrue(testFeature.self().isEnabled())
         assertFalse(testFeature.fooFeature().isEnabled())
-        assertNull(testFeature.fooFeature().rolloutStep())
+        assertNull(testFeature.fooFeature().rolloutThreshold())
 
         // enable rollout
         assertTrue(
@@ -877,10 +1233,12 @@ class ContributesRemoteFeatureCodeGeneratorTest {
             ),
         )
 
+        val rolloutThreshold = testFeature.fooFeature().rolloutThreshold()
         assertTrue(testFeature.self().isEnabled())
         // cache rollout
-        val rolloutStep = testFeature.fooFeature().rolloutStep()
+        assertEquals(rolloutThreshold, testFeature.fooFeature().rolloutThreshold())
         val wasEnabled = testFeature.fooFeature().isEnabled()
+        val wasEnabledRolloutValue = testFeature.fooFeature().getRawStoredState()!!.rollout!!.last()
 
         // halt rollout
         assertTrue(
@@ -914,7 +1272,7 @@ class ContributesRemoteFeatureCodeGeneratorTest {
 
         assertTrue(testFeature.self().isEnabled())
         assertFalse(testFeature.fooFeature().isEnabled())
-        assertEquals(rolloutStep, testFeature.fooFeature().rolloutStep())
+        assertEquals(rolloutThreshold, testFeature.fooFeature().rolloutThreshold())
 
         // resume rollout just of certain app versions
         assertTrue(
@@ -949,7 +1307,7 @@ class ContributesRemoteFeatureCodeGeneratorTest {
 
         assertTrue(testFeature.self().isEnabled())
         assertFalse(testFeature.fooFeature().isEnabled())
-        assertEquals(rolloutStep, testFeature.fooFeature().rolloutStep())
+        assertEquals(rolloutThreshold, testFeature.fooFeature().rolloutThreshold())
 
         // resume rollout and update app version
         whenever(appBuildConfig.versionCode).thenReturn(2)
@@ -985,7 +1343,7 @@ class ContributesRemoteFeatureCodeGeneratorTest {
 
         assertTrue(testFeature.self().isEnabled())
         assertEquals(wasEnabled, testFeature.fooFeature().isEnabled())
-        assertEquals(rolloutStep, testFeature.fooFeature().rolloutStep())
+        assertEquals(rolloutThreshold, testFeature.fooFeature().rolloutThreshold())
 
         // finish rollout
         assertTrue(
@@ -1023,11 +1381,11 @@ class ContributesRemoteFeatureCodeGeneratorTest {
 
         assertTrue(testFeature.self().isEnabled())
         assertTrue(testFeature.fooFeature().isEnabled())
+        assertEquals(rolloutThreshold, testFeature.fooFeature().rolloutThreshold())
         if (wasEnabled) {
-            assertEquals(rolloutStep, testFeature.fooFeature().rolloutStep())
+            assertTrue(testFeature.fooFeature().rolloutThreshold()!! <= wasEnabledRolloutValue)
         } else {
-            assertNotEquals(rolloutStep, testFeature.fooFeature().rolloutStep())
-            assertEquals(4, testFeature.fooFeature().rolloutStep())
+            assertTrue(testFeature.fooFeature().rolloutThreshold()!! <= testFeature.fooFeature().getRawStoredState()!!.rollout!!.last())
         }
 
         // remove steps
@@ -1050,12 +1408,12 @@ class ContributesRemoteFeatureCodeGeneratorTest {
 
         assertTrue(testFeature.self().isEnabled())
         assertTrue(testFeature.fooFeature().isEnabled())
-        if (wasEnabled) {
-            assertEquals(rolloutStep, testFeature.fooFeature().rolloutStep())
-        } else {
-            assertNotEquals(rolloutStep, testFeature.fooFeature().rolloutStep())
-            assertEquals(4, testFeature.fooFeature().rolloutStep())
-        }
+        // if (wasEnabled) {
+        //     assertEquals(rolloutStep, testFeature.fooFeature().rolloutStep())
+        // } else {
+        //     assertNotEquals(rolloutStep, testFeature.fooFeature().rolloutStep())
+        //     assertEquals(4, testFeature.fooFeature().rolloutStep())
+        // }
     }
 
     @Test
@@ -1112,8 +1470,19 @@ class ContributesRemoteFeatureCodeGeneratorTest {
                                     }
                                 ]
                             },
-                            "variantFeature": {
+                            "experimentFooFeature": {
                                 "state": "enabled",
+                                "targets": [
+                                    {
+                                        "variantKey": "ma"
+                                    },
+                                    {
+                                        "variantKey": "mb"
+                                    }
+                                ]
+                            },
+                            "variantFeature": {
+                                "state": "disabled",
                                 "targets": [
                                     {
                                         "variantKey": "mc"
@@ -1127,7 +1496,8 @@ class ContributesRemoteFeatureCodeGeneratorTest {
         )
 
         assertTrue(testFeature.self().isEnabled())
-        assertFalse(testFeature.fooFeature().isEnabled())
+        // true because it's not an experiment and so variants are ignored
+        assertTrue(testFeature.fooFeature().isEnabled())
         assertEquals(
             listOf(
                 Toggle.State.Target("ma"),
@@ -1135,7 +1505,17 @@ class ContributesRemoteFeatureCodeGeneratorTest {
             ),
             testFeature.fooFeature().getRawStoredState()!!.targets,
         )
-        assertTrue(testFeature.variantFeature().isEnabled())
+        // false because it is an experiment and so variants are considered
+        assertFalse(testFeature.experimentFooFeature().isEnabled())
+        assertEquals(
+            listOf(
+                Toggle.State.Target("ma"),
+                Toggle.State.Target("mb"),
+            ),
+            testFeature.experimentFooFeature().getRawStoredState()!!.targets,
+        )
+
+        assertFalse(testFeature.variantFeature().isEnabled())
         assertEquals(
             listOf(
                 Toggle.State.Target("mc"),
@@ -1151,6 +1531,14 @@ class ContributesRemoteFeatureCodeGeneratorTest {
 
         val privacyPlugin = (feature as PrivacyFeaturePlugin)
 
+        assertFalse(testFeature.self().isEnabled())
+        assertEquals(0, variantManager.saveVariantsCallCounter)
+        assertNull(variantManager.variant)
+        assertFalse(testFeature.experimentFooFeature().isEnabled())
+        // variant is null at this moment, feature flag targets variants, we should assign the default variant
+        assertEquals(1, variantManager.saveVariantsCallCounter)
+        assertEquals("", variantManager.variant)
+
         // all disabled
         assertTrue(
             privacyPlugin.store(
@@ -1159,7 +1547,67 @@ class ContributesRemoteFeatureCodeGeneratorTest {
                     {
                         "state": "enabled",
                         "features": {
-                            "fooFeature": {
+                            "experimentFooFeature": {
+                                "state": "enabled",
+                                "targets": [
+                                    {
+                                        "variantKey": "ma"
+                                    },
+                                    {
+                                        "variantKey": "mb"
+                                    }
+                                ]
+                            },
+                            "variantFeature": {
+                                "state": "enabled",
+                                "targets": [
+                                    {
+                                        "variantKey": "mc"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                """.trimIndent(),
+            ),
+        )
+
+        // Remains false as assigned variant now is ""
+        assertFalse(testFeature.experimentFooFeature().isEnabled())
+        assertEquals(
+            listOf(
+                Toggle.State.Target("ma"),
+                Toggle.State.Target("mb"),
+            ),
+            testFeature.experimentFooFeature().getRawStoredState()!!.targets,
+        )
+        assertTrue(testFeature.variantFeature().isEnabled())
+        assertEquals("", variantManager.variant)
+        assertEquals(1, variantManager.saveVariantsCallCounter)
+        assertEquals(
+            listOf(
+                Toggle.State.Target("mc"),
+            ),
+            testFeature.variantFeature().getRawStoredState()!!.targets,
+        )
+    }
+
+    @Test
+    fun `test variant when assigned variant key is not null`() {
+        variantManager.variant = "na"
+        val feature = generatedFeatureNewInstance()
+
+        val privacyPlugin = (feature as PrivacyFeaturePlugin)
+
+        // all disabled
+        assertTrue(
+            privacyPlugin.store(
+                "testFeature",
+                """
+                    {
+                        "state": "enabled",
+                        "features": {
+                            "experimentFooFeature": {
                                 "state": "enabled",
                                 "targets": [
                                     {
@@ -1185,17 +1633,22 @@ class ContributesRemoteFeatureCodeGeneratorTest {
         )
 
         assertTrue(testFeature.self().isEnabled())
-        assertFalse(testFeature.fooFeature().isEnabled())
         assertEquals(0, variantManager.saveVariantsCallCounter)
+        assertEquals("na", variantManager.variant)
+        assertFalse(testFeature.experimentFooFeature().isEnabled())
+        // variant is null at this moment, feature flag targets variants, we should assign the default variant
+        assertEquals(0, variantManager.saveVariantsCallCounter)
+        assertEquals("na", variantManager.variant)
         assertEquals(
             listOf(
                 Toggle.State.Target("ma"),
                 Toggle.State.Target("mb"),
             ),
-            testFeature.fooFeature().getRawStoredState()!!.targets,
+            testFeature.experimentFooFeature().getRawStoredState()!!.targets,
         )
-        assertFalse(testFeature.variantFeature().isEnabled())
+        assertTrue(testFeature.variantFeature().isEnabled())
         assertEquals(0, variantManager.saveVariantsCallCounter)
+        assertEquals("na", variantManager.variant)
         assertEquals(
             listOf(
                 Toggle.State.Target("mc"),
@@ -1219,7 +1672,7 @@ class ContributesRemoteFeatureCodeGeneratorTest {
                     {
                         "state": "enabled",
                         "features": {
-                            "variantFeatureForcesDefaultVariant": {
+                            "experimentDisabledByDefault": {
                                 "state": "enabled",
                                 "targets": [
                                     {
@@ -1234,14 +1687,14 @@ class ContributesRemoteFeatureCodeGeneratorTest {
         )
 
         assertTrue(testFeature.self().isEnabled())
-        assertFalse(testFeature.variantFeatureForcesDefaultVariant().isEnabled())
+        assertFalse(testFeature.experimentDisabledByDefault().isEnabled())
         assertEquals(1, variantManager.saveVariantsCallCounter)
         assertEquals("", variantManager.getVariantKey())
         assertEquals(
             listOf(
                 Toggle.State.Target("mc"),
             ),
-            testFeature.variantFeatureForcesDefaultVariant().getRawStoredState()!!.targets,
+            testFeature.experimentDisabledByDefault().getRawStoredState()!!.targets,
         )
     }
 
@@ -1260,7 +1713,7 @@ class ContributesRemoteFeatureCodeGeneratorTest {
                     {
                         "state": "enabled",
                         "features": {
-                            "variantFeatureForcesDefaultVariant": {
+                            "experimentDisabledByDefault": {
                                 "state": "enabled",
                                 "targets": [
                                     {
@@ -1275,14 +1728,14 @@ class ContributesRemoteFeatureCodeGeneratorTest {
         )
 
         assertTrue(testFeature.self().isEnabled())
-        assertTrue(testFeature.variantFeatureForcesDefaultVariant().isEnabled())
+        assertTrue(testFeature.experimentDisabledByDefault().isEnabled())
         assertEquals(1, variantManager.saveVariantsCallCounter)
         assertEquals("", variantManager.getVariantKey())
         assertEquals(
             listOf(
                 Toggle.State.Target(""),
             ),
-            testFeature.variantFeatureForcesDefaultVariant().getRawStoredState()!!.targets,
+            testFeature.experimentDisabledByDefault().getRawStoredState()!!.targets,
         )
     }
 
@@ -1301,7 +1754,7 @@ class ContributesRemoteFeatureCodeGeneratorTest {
                     {
                         "state": "enabled",
                         "features": {
-                            "variantFeatureForcesDefaultVariant": {
+                            "experimentDisabledByDefault": {
                                 "state": "enabled",
                                 "targets": [
                                     {
@@ -1316,14 +1769,14 @@ class ContributesRemoteFeatureCodeGeneratorTest {
         )
 
         assertTrue(testFeature.self().isEnabled())
-        assertTrue(testFeature.variantFeatureForcesDefaultVariant().isEnabled())
+        assertTrue(testFeature.experimentDisabledByDefault().isEnabled())
         assertEquals(0, variantManager.saveVariantsCallCounter)
         assertEquals("mc", variantManager.getVariantKey())
         assertEquals(
             listOf(
                 Toggle.State.Target("mc"),
             ),
-            testFeature.variantFeatureForcesDefaultVariant().getRawStoredState()!!.targets,
+            testFeature.experimentDisabledByDefault().getRawStoredState()!!.targets,
         )
     }
 
@@ -1347,12 +1800,12 @@ class ContributesRemoteFeatureCodeGeneratorTest {
             )
     }
 
-    private fun Toggle.rolloutStep(): Int? {
-        return getRawStoredState()?.rolloutStep
+    private fun Toggle.rolloutThreshold(): Double? {
+        return getRawStoredState()?.rolloutThreshold
     }
 }
 
-private class FakeVariantManager : VariantManager {
+internal class FakeVariantManager : VariantManager {
     var saveVariantsCallCounter = 0
     var variant: String? = null
 
@@ -1368,7 +1821,7 @@ private class FakeVariantManager : VariantManager {
         TODO("Not yet implemented")
     }
 
-    override fun saveVariants(variants: List<VariantConfig>) {
+    override fun updateVariants(variants: List<VariantConfig>) {
         saveVariantsCallCounter++
         variant = ""
     }

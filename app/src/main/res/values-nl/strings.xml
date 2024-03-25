@@ -150,7 +150,6 @@
     <string name="settingsWebTrackingProtectionDescription">Standaard ingeschakeld</string>
     <string name="settingsHeadingSettings">Instellingen</string>
     <string name="settingsPermissionsSetting">Toestemmingen</string>
-    <string name="settingsAutofillLoginsSetting">Aanmeldgegevens</string>
     <string name="settingsSyncSetting">Synchronisatie en back-up</string>
     <string name="settingsFireButton">Fire Button</string>
 
@@ -499,7 +498,6 @@
     <string name="onboardingFeatureOptionOneClickDataClearing">Gegevens wissen met één klik</string>
 
     <!-- Download Confirmation -->
-    <string name="downloadConfirmationContinue">Opslaan in downloads</string>
     <string name="downloadConfirmationSaveFileTitle" instruction="Placeholder is the name of a file">%1$s opslaan</string>
     <string name="downloadConfirmationKeepBothFilesText">Houd beide</string>
     <string name="downloadConfirmationReplaceOldFileText">Vervangen</string>
@@ -634,8 +632,6 @@
 
     <!-- Autofill -->
     <string name="autofillSnackbarAction" instruction="Label for a button that lets the user view the details for a login credential">Weergeven</string>
-    <string name="autofillLoginSavedSnackbarMessage">Aanmeldgegevens opgeslagen</string>
-    <string name="autofillLoginUpdatedSnackbarMessage">Aanmeldgegevens bijgewerkt</string>
 
     <!-- Waitlist Notification -->
     <string name="waitlistNotificationDialogDescription">Wil je dat we je een melding sturen als je aan de beurt bent?</string>
@@ -776,4 +772,45 @@
     <!-- Private voice search -->
     <string name="accessibilityVoiceSearchSubtitle">Voeg de optie \'Private spraakopdracht\' toe aan de adresbalk. Audio wordt niet opgeslagen en met niemand gedeeld, ook niet met DuckDuckGo.</string>
     <string name="accessibilityVoiceSearchTitle">Private spraakzoekopdracht</string>
+
+    <!-- Uploading an image from the camera or choosing to use existing image -->
+    <string name="imageCaptureCameraUnavailable">Kan geen toegang krijgen tot de camera</string>
+    <string name="imageCaptureCameraGalleryDisambiguationTitle">Upload een afbeelding</string>
+    <string name="imageCaptureCameraGalleryDisambiguationGalleryOption">Bestand kiezen</string>
+    <string name="imageCaptureCameraGalleryDisambiguationCameraOption">Foto maken</string>
+    <string name="imageCaptureCameraPermissionDeniedTitle">DuckDuckGo toestaan om toegang tot de camera op dit apparaat te vragen</string>
+    <string name="imageCaptureCameraPermissionDeniedMessage">Sites kunnen je camera alleen gebruiken als je DuckDuckGo toestaat om toegang te vragen.</string>
+    <string name="imageCaptureCameraPermissionDeniedPositiveButton">Open Instellingen</string>
+    <string name="imageCaptureCameraPermissionDeniedNegativeButton">Annuleren</string>
+
+    <!-- Autofill -->
+    <string name="settingsAutofillLoginsSetting">Wachtwoorden</string>
+    <string name="autofillLoginSavedSnackbarMessage">Wachtwoord opgeslagen</string>
+    <string name="autofillLoginUpdatedSnackbarMessage">Wachtwoord bijgewerkt</string>
+
+    <!-- Bookmarks -->
+    <string name="searchBookmarks">Bladwijzers zoeken</string>
+    <string name="deleteFolder" instruction="%1$s is the folder name">"%1$s verwijderen?"</string>
+    <string name="deleteBookmark" instruction="%1$s is the bookmark name">"Bladwijzer '%1$s' verwijderen?"</string>
+    <string name="bookmarkAddedInBookmarks" instruction="%1$s is the folder name">Bladwijzer toegevoegd in %1$s</string>
+    <string name="addToFavorites">Toevoegen aan favorieten</string>
+    <string name="editBookmark">Bladwijzer bewerken</string>
+    <string name="importBookmarksDescription">Als je bladwijzers in een andere browser zijn opgeslagen,\nkun je ze in DuckDuckGo importeren.</string>
+    <string name="importBookmarks">Bladwijzers importeren</string>
+    <string name="noResultsFor" instruction="%1$s is the search term">Geen resultaten voor \'%1$s\'</string>
+    <string name="removeFromFavorites">Verwijderen uit favorieten</string>
+    <string name="addToFavoritesMenu">Toevoegen aan favorieten</string>
+    <plurals name="bookmarkFolderDeleteMessage">
+        <item quantity="one">Weet je zeker dat je deze deze map en %1$d item wilt verwijderen?</item>
+        <item quantity="other">Weet je zeker dat je deze map en %1$d items wilt verwijderen?</item>
+    </plurals>
+    <string name="deleteBookmarkConfirmationDescription" instruction="Placeholder is the name of the bookmark">Weet je zeker dat je bladwijzer voor &lt;b&gt;%1$s&lt;/b&gt; wilt verwijderen?</string>
+
+    <!-- Sync Favicons -->
+    <string name="sync_fetch_icons_title">Bladwijzerpictogrammen ophalen</string>
+    <string name="sync_fetch_icons_subtitle">Download automatisch pictogrammen voor je gesynchroniseerde bladwijzers.</string>
+    <string name="faviconsPromptTitle">Ontbrekende pictogrammen downloaden?</string>
+    <string name="faviconsPromptMessage">Wil je dat dit apparaat automatisch pictogrammen voor gesynchroniseerde bladwijzers downloadt van de websites die als bladwijzer zijn opgeslagen?</string>
+    <string name="faviconsPromptPrimaryCta">Bladwijzerpictogrammen up-to-date houden</string>
+    <string name="faviconsPromptSecondaryCta">Niet nu</string>
 </resources>

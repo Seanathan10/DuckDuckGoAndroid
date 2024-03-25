@@ -16,11 +16,8 @@ ext {
 
 android {
     defaultConfig {
-        if (project.hasProperty('internal-testing')) {
-            applicationId "com.duckduckgo.dev.android"
-        } else {
-            applicationId "com.duckduckgo.mobile.android"
-        }
+        applicationId "com.duckduckgo.mobile.android"
+
         minSdk min_sdk
         targetSdk target_sdk
         compileSdk compile_sdk
@@ -65,20 +62,22 @@ android {
         viewBinding = true
     }
     compileOptions {
+        coreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlin {
         jvmToolchain(17)
     }
+    ksp {
+        arg("room.generateKotlin", "true")
+    }
     signingConfigs {
         release
     }
     buildTypes {
         debug {
-            if (!project.hasProperty('internal-testing')) {
-                applicationIdSuffix ".debug"
-            }
+            applicationIdSuffix ".debug"
             pseudoLocalesEnabled false
             manifestPlaceholders = [
                     appIcon     : "@mipmap/ic_launcher_blue",
@@ -167,6 +166,9 @@ fladle {
 }
 
 dependencies {
+	implementation project(":verified-installation-impl")
+	implementation project(":verified-installation-api")
+
     implementation project(':navigation-api')
     implementation project(':navigation-impl')
 
@@ -217,6 +219,9 @@ dependencies {
     implementation project(':privacy-dashboard-api')
     implementation project(':privacy-dashboard-impl')
 
+    implementation project(":privacy-protections-popup-api")
+    implementation project(":privacy-protections-popup-impl")
+
     implementation project(':remote-messaging-api')
     implementation project(':remote-messaging-impl')
     implementation project(':remote-messaging-store')
@@ -234,10 +239,6 @@ dependencies {
 
     implementation project(':site-permissions-api')
     implementation project(':site-permissions-impl')
-
-    implementation project(':secure-storage-api')
-    implementation project(':secure-storage-impl')
-    implementation project(':secure-storage-store')
 
     implementation project(':ad-click-api')
     implementation project(':ad-click-impl')
@@ -298,12 +299,11 @@ dependencies {
     implementation project(':web-compat-impl')
     implementation project(':web-compat-store')
 
-    if (project.hasProperty('internal-testing')) {
-        implementation project(':subscriptions-api')
-        implementation project(':subscriptions-impl')
-        implementation project(':subscriptions-store')
-        internalImplementation project(':network-protection-subscription-internal')
-    }
+    implementation project(':subscriptions-api')
+    implementation project(':network-protection-subscription-internal')
+
+    implementation project(':subscriptions-impl')
+    internalImplementation project(':subscriptions-internal')
 
     implementation project(':user-agent-api')
     implementation project(':user-agent-impl')
@@ -349,10 +349,7 @@ dependencies {
     implementation "io.reactivex.rxjava2:rxjava:_"
     implementation "io.reactivex.rxjava2:rxandroid:_"
     implementation JakeWharton.timber
-
-    // ThreeTenABP
-    implementation "com.jakewharton.threetenabp:threetenabp:_"
-    testImplementation "org.threeten:threetenbp:_"
+    implementation 'nl.dionsegijn:konfetti:1.2.5'
 
     // RxRelay
     implementation "com.jakewharton.rxrelay2:rxrelay:_"
@@ -445,6 +442,8 @@ dependencies {
     androidTestImplementation project(':common-test')
     testImplementation project(':common-test')
     lintChecks project(":lint-rules")
+
+    coreLibraryDesugaring Android.tools.desugarJdkLibs
 }
 
 tasks.register('fastlaneVersionCode') {

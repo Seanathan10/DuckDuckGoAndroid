@@ -23,7 +23,6 @@ import app.cash.turbine.test
 import com.duckduckgo.appbuildconfig.api.AppBuildConfig
 import com.duckduckgo.common.test.CoroutineTestRule
 import com.duckduckgo.common.ui.store.notifyme.NotifyMeDataStore
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -40,11 +39,9 @@ import org.mockito.kotlin.whenever
 import org.robolectric.annotation.Config
 
 @RunWith(AndroidJUnit4::class)
-@ExperimentalCoroutinesApi
 @Config(manifest = Config.NONE)
 class NotifyMeViewModelTest {
 
-    @ExperimentalCoroutinesApi
     @get:Rule
     var coroutineRule = CoroutineTestRule()
 
@@ -213,20 +210,6 @@ class NotifyMeViewModelTest {
     }
 
     @Test
-    fun whenOnNotifyMeButtonClickedOnAndroid6ThenOpenSettingsCommandIsSent() = runTest {
-        whenever(mockAppBuildConfig.sdkInt).thenReturn(Build.VERSION_CODES.M)
-
-        testee.onNotifyMeButtonClicked()
-
-        testee.commands().test {
-            assertEquals(
-                NotifyMeViewModel.Command.OpenSettings,
-                awaitItem(),
-            )
-        }
-    }
-
-    @Test
     fun whenOnCloseButtonClickedThenCloseCommandIsSentAndSetDismissedIsCalled() = runTest {
         testee.onCloseButtonClicked()
 
@@ -263,21 +246,6 @@ class NotifyMeViewModelTest {
         testee.commands().test {
             assertEquals(
                 NotifyMeViewModel.Command.OpenSettingsOnAndroid8Plus,
-                awaitItem(),
-            )
-        }
-    }
-
-    @Test
-    fun whenHandleRequestPermissionRationaleOnAndroid6WithShouldShowRationaleFalseThenOpenSettingsCommandIsSent() = runTest {
-        whenever(mockAppBuildConfig.sdkInt).thenReturn(Build.VERSION_CODES.M)
-        val shouldShowRationale = false
-
-        testee.handleRequestPermissionRationale(shouldShowRationale)
-
-        testee.commands().test {
-            assertEquals(
-                NotifyMeViewModel.Command.OpenSettings,
                 awaitItem(),
             )
         }

@@ -286,7 +286,6 @@
 
     <style name="Widget.DuckDuckGo.DialogFullScreen">
         <item name="android:windowIsFloating">false</item>
-        <item name="android:windowTranslucentStatus">true</item>
     </style>
 
     <!-- Dax Dialog -->
@@ -330,6 +329,7 @@
         <item name="hintTextColor">@color/text_input_hint_color_selector</item>
         <item name="android:textColorHint">@color/text_input_hint_color_selector</item>
         <item name="android:theme">@style/Widget.DuckDuckGo.TextInputCursor</item>
+        <item name="errorIconDrawable">@null</item>
     </style>
 
     <style name="Widget.DuckDuckGo.TextInputText">

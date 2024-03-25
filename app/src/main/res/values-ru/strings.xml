@@ -150,7 +150,6 @@
     <string name="settingsWebTrackingProtectionDescription">Включено по умолчанию</string>
     <string name="settingsHeadingSettings">Настройки</string>
     <string name="settingsPermissionsSetting">Разрешения</string>
-    <string name="settingsAutofillLoginsSetting">Логины</string>
     <string name="settingsSyncSetting">Синхронизация и резервное копирование</string>
     <string name="settingsFireButton">Кнопка «Тревога»</string>
 
@@ -503,7 +502,6 @@
     <string name="onboardingFeatureOptionOneClickDataClearing">Очистка данных одним кликом</string>
 
     <!-- Download Confirmation -->
-    <string name="downloadConfirmationContinue">Сохранить в «Загрузки»</string>
     <string name="downloadConfirmationSaveFileTitle" instruction="Placeholder is the name of a file">Сохранить %1$s</string>
     <string name="downloadConfirmationKeepBothFilesText">Оставить оба</string>
     <string name="downloadConfirmationReplaceOldFileText">Заменить</string>
@@ -638,8 +636,6 @@
 
     <!-- Autofill -->
     <string name="autofillSnackbarAction" instruction="Label for a button that lets the user view the details for a login credential">Просмотр</string>
-    <string name="autofillLoginSavedSnackbarMessage">Логин сохранен</string>
-    <string name="autofillLoginUpdatedSnackbarMessage">Логин обновлен</string>
 
     <!-- Waitlist Notification -->
     <string name="waitlistNotificationDialogDescription">Хотите получить уведомление, когда настанет ваша очередь?</string>
@@ -784,4 +780,47 @@
     <!-- Private voice search -->
     <string name="accessibilityVoiceSearchSubtitle">Добавить опцию «Частный голосовой поиск» в адресную строку. Ваш голосовой запрос не сохраняется и никуда не передается, даже в DuckDuckGo.</string>
     <string name="accessibilityVoiceSearchTitle">Конфиденциальный голосовой поиск</string>
+
+    <!-- Uploading an image from the camera or choosing to use existing image -->
+    <string name="imageCaptureCameraUnavailable">Нет доступа к камере</string>
+    <string name="imageCaptureCameraGalleryDisambiguationTitle">Загрузка изображения</string>
+    <string name="imageCaptureCameraGalleryDisambiguationGalleryOption">Выбрать файл</string>
+    <string name="imageCaptureCameraGalleryDisambiguationCameraOption">Снять фото</string>
+    <string name="imageCaptureCameraPermissionDeniedTitle">Разрешить DuckDuckGo запрашивать доступ к камере на этом устройстве</string>
+    <string name="imageCaptureCameraPermissionDeniedMessage">Если вы разрешите DuckDuckGo запрашивать доступ, сайты смогут использовать камеру.</string>
+    <string name="imageCaptureCameraPermissionDeniedPositiveButton">Открыть Настройки</string>
+    <string name="imageCaptureCameraPermissionDeniedNegativeButton">Отменить</string>
+
+    <!-- Autofill -->
+    <string name="settingsAutofillLoginsSetting">Пароли</string>
+    <string name="autofillLoginSavedSnackbarMessage">Пароль сохранен</string>
+    <string name="autofillLoginUpdatedSnackbarMessage">Пароль обновлен</string>
+
+    <!-- Bookmarks -->
+    <string name="searchBookmarks">Поиск по закладкам</string>
+    <string name="deleteFolder" instruction="%1$s is the folder name">"Удалить папку «%1$s»?"</string>
+    <string name="deleteBookmark" instruction="%1$s is the bookmark name">"Удалить закладку «%1$s»?"</string>
+    <string name="bookmarkAddedInBookmarks" instruction="%1$s is the folder name">Закладка добавлена в папку «%1$s»</string>
+    <string name="addToFavorites">Добавить в избранное</string>
+    <string name="editBookmark">Редактировать закладку</string>
+    <string name="importBookmarksDescription">Если ваши закладки хранятся в другом браузере, вы можете импортировать их в DuckDuckGo.</string>
+    <string name="importBookmarks">Импортировать закладки</string>
+    <string name="noResultsFor" instruction="%1$s is the search term">Поиск «%1$s» не дал результатов</string>
+    <string name="removeFromFavorites">Удалить из избранного</string>
+    <string name="addToFavoritesMenu">Добавить в избранное</string>
+    <plurals name="bookmarkFolderDeleteMessage">
+        <item quantity="one">Вы точно хотите удалить эту папку с %1$d объектом?</item>
+        <item quantity="few">Вы точно хотите удалить эту папку с %1$d объектами?</item>
+        <item quantity="many">Вы точно хотите удалить эту папку с %1$d объектами?</item>
+        <item quantity="other">Вы точно хотите удалить эту папку с объектами (%1$d)?</item>
+    </plurals>
+    <string name="deleteBookmarkConfirmationDescription" instruction="Placeholder is the name of the bookmark">Вы точно хотите удалить закладку &lt;b&gt;«%1$s»&lt;/b&gt;?</string>
+
+    <!-- Sync Favicons -->
+    <string name="sync_fetch_icons_title">Загружать значки закладок</string>
+    <string name="sync_fetch_icons_subtitle">Позволяет автоматически загружать значки для синхронизированных закладок.</string>
+    <string name="faviconsPromptTitle">Загрузить недостающие значки?</string>
+    <string name="faviconsPromptMessage">Хотите, чтобы это устройство автоматически загружало значки синхронизированных закладок с сохраненных сайтов?</string>
+    <string name="faviconsPromptPrimaryCta">Обновлять значки закладок</string>
+    <string name="faviconsPromptSecondaryCta">Не сейчас</string>
 </resources>

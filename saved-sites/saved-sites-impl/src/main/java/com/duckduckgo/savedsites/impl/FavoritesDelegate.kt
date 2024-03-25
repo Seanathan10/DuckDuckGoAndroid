@@ -56,11 +56,9 @@ class RealFavoritesDelegate @Inject constructor(
     override fun getFavorites(): Flow<List<SavedSite.Favorite>> {
         return favoritesDisplayModeSetting.getFavoriteFolderFlow().flatMapLatest { viewMode ->
             val favoriteFolder = favoritesDisplayModeSetting.getQueryFolder()
-            Timber.d("Sync-Bookmarks: getFavorites as Flow from $favoriteFolder")
             savedSitesRelationsDao.relations(favoriteFolder).distinctUntilChanged().map { relations ->
-                Timber.d("Sync-Bookmarks: getFavorites as Flow, emit relations $relations")
-                relations.mapIndexed { index, relation ->
-                    savedSitesEntitiesDao.entityById(relation.entityId)!!.mapToFavorite(index)
+                relations.mapIndexedNotNull { index, relation ->
+                    savedSitesEntitiesDao.entityById(relation.entityId)?.mapToFavorite(index)
                 }
             }.flowOn(dispatcherProvider.io())
         }
@@ -68,8 +66,8 @@ class RealFavoritesDelegate @Inject constructor(
 
     override fun getFavoritesObservable(): Single<List<SavedSite.Favorite>> {
         return savedSitesRelationsDao.relationsObservable(SavedSitesNames.FAVORITES_ROOT).map { relations ->
-            relations.mapIndexed { index, relation ->
-                savedSitesEntitiesDao.entityById(relation.entityId)!!.mapToFavorite(index)
+            relations.mapIndexedNotNull { index, relation ->
+                savedSitesEntitiesDao.entityById(relation.entityId)?.mapToFavorite(index)
             }
         }
     }

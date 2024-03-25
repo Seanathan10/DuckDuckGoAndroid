@@ -141,7 +141,7 @@
     <!-- Exclusion List -->
     <string name="atp_ExclusionListActivityTitle">Все приложения</string>
     <string name="atp_ExcludedAppsFeature">Защита от слежки блокирует трекеры сторонних компаний (например, Facebook) при попытке следить за вами в таких приложениях как «Здоровье». Однако компании могут отслеживать вас в собственных приложениях.\n\nЕсли приложение сбоит, отключите для него защиту.</string>
-    <string name="atp_ExcludedAppsEnabledLabel">Чтобы устранить проблемы с загрузкой контента, DuckDuckGo может отключить защиту для некоторых приложений при тестировании бета-версий. Ваши собственные настройки не изменятся, если вы сами не сбросите их на значения по умолчанию.</string>
+    <string name="atp_ExcludedAppsEnabledLabel">Чтобы устранить проблемы с загрузкой контента, DuckDuckGo может отключить защиту для некоторых приложений. Ваши собственные настройки не изменятся, если вы сами не сбросите их на значения по умолчанию.</string>
     <string name="atp_ExcludedAppsDisabledLabel"><b>Защита от слежки отключена</b> Она нарушает работу приложений? <annotation type="report_issues_link">Сообщите о проблемах</annotation></string>
     <string name="atp_ExcludedAppsReport">Сообщить о проблеме с другим приложением</string>
     <string name="atp_ExcludedReasonManuallyDisabled">Выключено вручную</string>
@@ -231,7 +231,6 @@
         <item quantity="many">приложениях</item>
         <item quantity="other">приложения</item>
     </plurals>
-    <string name="atp_ActivityEnabledLabel">Это бета-версия функции. Заметили проблему с приложением? <annotation type="app_settings_link">Сообщите нам!</annotation></string>
     <string name="atp_ActivityDisabledLabel"><b>Функция App Tracking Protection отключена</b> \nИз-за нее возникли сбои в приложениях? <annotation type="report_issues_link">Сообщить о проблемах</annotation></string>
     <string name="atp_ActivityDisabledBySystemLabel"><b>Система Android отключила функцию блокировки отслеживания приложениями</b>. Не делать этого впредь? <annotation type="re_enable_link">Включить снова</annotation></string>
     <string name="atp_ActivityRevokedLabel"><b>Защита от слежки отключена.</b>\nВозможно, ее отключило приложение VPN. Включите защиту снова с помощью переключателя выше.</string>
@@ -411,7 +410,7 @@
     <string name="atp_ExcludeAppsManuallyCTANotNow">Не сейчас</string>
     <string name="atp_ActivityRecentActivityHeader">Активность</string>
     <string name="atp_ActivityManageProtectionLabel">Возникли проблемы?</string>
-    <string name="atp_ActivityEnabledBannerLabel">Защита некоторых приложений автоматически отключается на время бета-тестирования. <annotation type="app_settings_link">Просмотреть приложения</annotation></string>
+    <string name="atp_ActivityEnabledBannerLabel">Защита некоторых приложений отключается автоматически. <annotation type="app_settings_link">Просмотреть приложения</annotation></string>
     <string name="atp_ActivityDescription">Заблокированные попытки отслеживания будут отображаться здесь</string>
     <plurals name="atp_ActivityProtectedApps" instruction="Placeholder is the number of apps that are protected">
         <item quantity="one">Мы защитили %1$s приложение от скрытых трекеров, которые пытались получить доступ к вашим личным данным</item>
@@ -434,7 +433,7 @@
     <string name="atp_ExcludedAppsFilterMenuUnprotectedLabel">Защита отключена</string>
     <string name="atp_ExcludedAppsFilterMenuAllLabel">Всё</string>
     <string name="atp_ActivityViewAppsLabel">Просмотреть приложения</string>
-    <string name="atp_ActivityEnabledMoreThanADayLabel">Это бета-версия функции. Проблемы с приложением? <annotation type="app_settings_link">Давайте устраним их вместе!</annotation></string>
+    <string name="atp_ActivityEnabledMoreThanADayLabel">Проблемы с приложением? <annotation type="app_settings_link">Давайте устраним их вместе!</annotation></string>
     <string name="atp_ExcludedAppsEnabledLearnWhyLabel">Активация блокировки отслеживания приложениями может нарушить работу некоторых программ.\n<annotation type="learn_why_link">С чем это связано...</annotation></string>
     <string name="atp_ExcludedAppsDisabledLearnWhyLabel">Защита отключена для сбоивших приложений. Ее можно включить снова, но при этом приложения могут работать некорректно. <annotation type="learn_why_link">С чем это связано...</annotation></string>
 

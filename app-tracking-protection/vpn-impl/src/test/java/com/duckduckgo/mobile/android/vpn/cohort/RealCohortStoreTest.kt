@@ -24,7 +24,7 @@ import com.duckduckgo.mobile.android.vpn.AppTpVpnFeature
 import com.duckduckgo.mobile.android.vpn.FakeVpnFeaturesRegistry
 import com.duckduckgo.mobile.android.vpn.VpnFeaturesRegistry
 import com.duckduckgo.mobile.android.vpn.prefs.VpnSharedPreferencesProvider
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import java.time.LocalDate
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
@@ -36,9 +36,7 @@ import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import org.threeten.bp.LocalDate
 
-@ExperimentalCoroutinesApi
 class RealCohortStoreTest {
     @get:Rule
     @Suppress("unused")

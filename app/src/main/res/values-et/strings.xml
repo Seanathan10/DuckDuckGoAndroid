@@ -150,7 +150,6 @@
     <string name="settingsWebTrackingProtectionDescription">Vaikimisi sisse lülitatud</string>
     <string name="settingsHeadingSettings">Sätted</string>
     <string name="settingsPermissionsSetting">Load</string>
-    <string name="settingsAutofillLoginsSetting">Sisselogimine</string>
     <string name="settingsSyncSetting">Sünkroonimine ja varundamine</string>
     <string name="settingsFireButton">Fire Button</string>
 
@@ -499,7 +498,6 @@
     <string name="onboardingFeatureOptionOneClickDataClearing">Ühe klõpsuga kustutamine</string>
 
     <!-- Download Confirmation -->
-    <string name="downloadConfirmationContinue">Salvesta allalaadimistesse</string>
     <string name="downloadConfirmationSaveFileTitle" instruction="Placeholder is the name of a file">Salvesta %1$s</string>
     <string name="downloadConfirmationKeepBothFilesText">Jäta mõlemad alles</string>
     <string name="downloadConfirmationReplaceOldFileText">Asenda</string>
@@ -634,8 +632,6 @@
 
     <!-- Autofill -->
     <string name="autofillSnackbarAction" instruction="Label for a button that lets the user view the details for a login credential">Kuva</string>
-    <string name="autofillLoginSavedSnackbarMessage">Sisselogimisandmed salvestatud</string>
-    <string name="autofillLoginUpdatedSnackbarMessage">Sisselogimisandmed värskendatud</string>
 
     <!-- Waitlist Notification -->
     <string name="waitlistNotificationDialogDescription">Kas soovite, et me saadame teile teavituse, kui on teie kord?</string>
@@ -776,4 +772,45 @@
     <!-- Private voice search -->
     <string name="accessibilityVoiceSearchSubtitle">Lisa aadressiribale privaatse häälotsingu valik. Heli ei salvestata ega jagata kellegagi, sealhulgas DuckDuckGoga.</string>
     <string name="accessibilityVoiceSearchTitle">Privaatne häälotsing</string>
+
+    <!-- Uploading an image from the camera or choosing to use existing image -->
+    <string name="imageCaptureCameraUnavailable">Juurdepääs kaamerale nurjus</string>
+    <string name="imageCaptureCameraGalleryDisambiguationTitle">Laadi pilt üles</string>
+    <string name="imageCaptureCameraGalleryDisambiguationGalleryOption">Vali fail</string>
+    <string name="imageCaptureCameraGalleryDisambiguationCameraOption">Tee pilt</string>
+    <string name="imageCaptureCameraPermissionDeniedTitle">Luba DuckDuckGo’l küsida juurdepääsu selle seadme kaamerale</string>
+    <string name="imageCaptureCameraPermissionDeniedMessage">Saidid saavad sinu kaamerat kasutada ainult siis, kui lubad DuckDuckGo’l küsida sellele juurdepääsu.</string>
+    <string name="imageCaptureCameraPermissionDeniedPositiveButton">Ava sätted</string>
+    <string name="imageCaptureCameraPermissionDeniedNegativeButton">Loobu</string>
+
+    <!-- Autofill -->
+    <string name="settingsAutofillLoginsSetting">Paroolid</string>
+    <string name="autofillLoginSavedSnackbarMessage">Parool salvestatud</string>
+    <string name="autofillLoginUpdatedSnackbarMessage">Parool uuendatud</string>
+
+    <!-- Bookmarks -->
+    <string name="searchBookmarks">Otsi järjehoidjaid</string>
+    <string name="deleteFolder" instruction="%1$s is the folder name">"Kas kustutada %1$s?"</string>
+    <string name="deleteBookmark" instruction="%1$s is the bookmark name">"Kas kustutada järjehoidja %1$s?"</string>
+    <string name="bookmarkAddedInBookmarks" instruction="%1$s is the folder name">Järjehoidja lisati kausta %1$s</string>
+    <string name="addToFavorites">Lisa lemmikutesse</string>
+    <string name="editBookmark">Redigeeri järjehoidjat</string>
+    <string name="importBookmarksDescription">Kui sinu järjehoidjad on salvestatud mõnes teises brauseris,\nsaad need importida DuckDuckGosse.</string>
+    <string name="importBookmarks">Impordi järjehoidjaid</string>
+    <string name="noResultsFor" instruction="%1$s is the search term">Päringule „%1$s” ei leitud tulemusi</string>
+    <string name="removeFromFavorites">Eemalda lemmikutest</string>
+    <string name="addToFavoritesMenu">Lisa lemmikutesse</string>
+    <plurals name="bookmarkFolderDeleteMessage">
+        <item quantity="one">Kas soovid kindlasti kustutada selle kausta ja %1$d üksuse?</item>
+        <item quantity="other">Kas soovid kindlasti kustutada selle kausta ja %1$d üksust?</item>
+    </plurals>
+    <string name="deleteBookmarkConfirmationDescription" instruction="Placeholder is the name of the bookmark">Kas soovid järjehoidja &lt;b&gt;%1$s&lt;/b&gt; kindlasti kustutada?</string>
+
+    <!-- Sync Favicons -->
+    <string name="sync_fetch_icons_title">Too järjehoidjaikoonid</string>
+    <string name="sync_fetch_icons_subtitle">Laadi automaatselt alla oma sünkroonitud järjehoidjate ikoonid.</string>
+    <string name="faviconsPromptTitle">Kas laadida alla puuduvad ikoonid?</string>
+    <string name="faviconsPromptMessage">Kas soovite, et see seade laadiks automaatselt alla sünkroonitud järjehoidjate ikoone järjehoidjatesse lisatud veebilehtedelt?</string>
+    <string name="faviconsPromptPrimaryCta">Hoidke järjehoidjate ikoonid ajakohastatud</string>
+    <string name="faviconsPromptSecondaryCta">Mitte praegu</string>
 </resources>
