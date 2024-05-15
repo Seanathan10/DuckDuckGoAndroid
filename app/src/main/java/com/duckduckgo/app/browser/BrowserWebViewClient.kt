@@ -19,6 +19,9 @@ package com.duckduckgo.app.browser
 import android.graphics.Bitmap
 import android.net.Uri
 import android.net.http.SslError
+import android.net.http.SslError.SSL_DATE_INVALID
+import android.net.http.SslError.SSL_EXPIRED
+import android.net.http.SslError.SSL_IDMISMATCH
 import android.net.http.SslError.SSL_UNTRUSTED
 import android.webkit.HttpAuthHandler
 import android.webkit.RenderProcessGoneDetail
@@ -34,6 +37,10 @@ import androidx.annotation.WorkerThread
 import androidx.core.net.toUri
 import com.duckduckgo.adclick.api.AdClickManager
 import com.duckduckgo.anrs.api.CrashLogger
+import com.duckduckgo.app.browser.SSLErrorType.EXPIRED
+import com.duckduckgo.app.browser.SSLErrorType.GENERIC
+import com.duckduckgo.app.browser.SSLErrorType.UNTRUSTED_HOST
+import com.duckduckgo.app.browser.SSLErrorType.WRONG_HOST
 import com.duckduckgo.app.browser.WebViewErrorResponse.BAD_URL
 import com.duckduckgo.app.browser.WebViewErrorResponse.CONNECTION
 import com.duckduckgo.app.browser.WebViewErrorResponse.OMITTED
@@ -62,6 +69,7 @@ import com.duckduckgo.common.utils.DispatcherProvider
 import com.duckduckgo.common.utils.plugins.PluginPoint
 import com.duckduckgo.cookies.api.CookieManagerProvider
 import com.duckduckgo.privacy.config.api.AmpLinks
+import com.duckduckgo.subscriptions.api.Subscriptions
 import com.duckduckgo.user.agent.api.ClientBrandHintProvider
 import java.net.URI
 import javax.inject.Inject
@@ -95,6 +103,7 @@ class BrowserWebViewClient @Inject constructor(
     private val shouldSendPageLoadedPixel: PageLoadedHandler,
     private val shouldSendPagePaintedPixel: PagePaintedHandler,
     private val mediaPlayback: MediaPlayback,
+    private val subscriptions: Subscriptions,
 ) : WebViewClient() {
 
     var webViewClientListener: WebViewClientListener? = null
@@ -105,6 +114,7 @@ class BrowserWebViewClient @Inject constructor(
     /**
      * This is the method of url overriding available from API 24 onwards
      */
+    @UiThread
     override fun shouldOverrideUrlLoading(
         view: WebView,
         request: WebResourceRequest,
@@ -121,8 +131,9 @@ class BrowserWebViewClient @Inject constructor(
         url: Uri,
         isForMainFrame: Boolean,
     ): Boolean {
-        Timber.v("shouldOverride $url")
         try {
+            Timber.v("shouldOverride webViewUrl: ${webView.url} URL: $url")
+            webViewClientListener?.onShouldOverride()
             if (isForMainFrame && dosDetector.isUrlGeneratingDos(url)) {
                 webView.loadUrl("about:blank")
                 webViewClientListener?.dosAttackDetected()
@@ -130,6 +141,10 @@ class BrowserWebViewClient @Inject constructor(
             }
 
             return when (val urlType = specialUrlDetector.determineType(initiatingUrl = webView.originalUrl, uri = url)) {
+                is SpecialUrlDetector.UrlType.ShouldLaunchPrivacyProLink -> {
+                    subscriptions.launchPrivacyPro(webView.context, url)
+                    true
+                }
                 is SpecialUrlDetector.UrlType.Email -> {
                     webViewClientListener?.sendEmailRequested(urlType.emailAddress)
                     true
@@ -258,6 +273,17 @@ class BrowserWebViewClient @Inject constructor(
         }
     }
 
+    @UiThread
+    override fun onPageCommitVisible(webView: WebView, url: String) {
+        Timber.v("onPageCommitVisible webViewUrl: ${webView.url} URL: $url progress: ${webView.progress}")
+        // Show only when the commit matches the tab state
+        if (webView.url == url) {
+            val navigationList = webView.safeCopyBackForwardList() ?: return
+            webViewClientListener?.navigationStateChanged(WebViewNavigationState(navigationList))
+            webViewClientListener?.onPageContentStart(url)
+        }
+    }
+
     private fun loadUrl(
         listener: WebViewClientListener,
         webView: WebView,
@@ -278,7 +304,7 @@ class BrowserWebViewClient @Inject constructor(
         url: String?,
         favicon: Bitmap?,
     ) {
-        Timber.v("onPageStarted webViewUrl: ${webView.url} URL: $url")
+        Timber.v("onPageStarted webViewUrl: ${webView.url} URL: $url progress: ${webView.progress}")
 
         url?.let {
             // See https://app.asana.com/0/0/1206159443951489/f (WebView limitations)
@@ -306,7 +332,10 @@ class BrowserWebViewClient @Inject constructor(
         loginDetector.onEvent(WebNavigationEvent.OnPageStarted(webView))
     }
 
-    private fun handleMediaPlayback(webView: WebView, url: String) {
+    private fun handleMediaPlayback(
+        webView: WebView,
+        url: String,
+    ) {
         // The default value for this flag is `true`.
         webView.settings.mediaPlaybackRequiresUserGesture = mediaPlayback.doesMediaPlaybackRequireUserGestureForUrl(url)
     }
@@ -416,6 +445,7 @@ class BrowserWebViewClient @Inject constructor(
         error: SslError,
     ) {
         var trusted: CertificateValidationState = CertificateValidationState.UntrustedChain
+
         when (error.primaryError) {
             SSL_UNTRUSTED -> {
                 Timber.d("The certificate authority ${error.certificate.issuedBy.dName} is not trusted")
@@ -426,7 +456,23 @@ class BrowserWebViewClient @Inject constructor(
         }
 
         Timber.d("The certificate authority validation result is $trusted")
-        if (trusted is CertificateValidationState.TrustedChain) handler.proceed() else super.onReceivedSslError(view, handler, error)
+        if (trusted is CertificateValidationState.TrustedChain) {
+            handler.proceed()
+        } else {
+            webViewClientListener?.onReceivedSslError(handler, parseSSlErrorResponse(error))
+        }
+    }
+
+    private fun parseSSlErrorResponse(sslError: SslError): SslErrorResponse {
+        Timber.d("SSL Certificate: parseSSlErrorResponse ${sslError.primaryError}")
+        val sslErrorType = when (sslError.primaryError) {
+            SSL_UNTRUSTED -> UNTRUSTED_HOST
+            SSL_EXPIRED -> EXPIRED
+            SSL_DATE_INVALID -> EXPIRED
+            SSL_IDMISMATCH -> WRONG_HOST
+            else -> GENERIC
+        }
+        return SslErrorResponse(sslError, sslErrorType, sslError.url)
     }
 
     private fun requestAuthentication(
@@ -546,4 +592,13 @@ enum class WebViewErrorResponse(@StringRes val errorId: Int) {
     OMITTED(R.string.webViewErrorNoConnection),
     LOADING(R.string.webViewErrorNoConnection),
     SSL_PROTOCOL_ERROR(R.string.webViewErrorSslProtocol),
+}
+
+data class SslErrorResponse(val error: SslError, val errorType: SSLErrorType, val url: String)
+enum class SSLErrorType(@StringRes val errorId: Int) {
+    EXPIRED(R.string.sslErrorExpiredMessage),
+    WRONG_HOST(R.string.sslErrorWrongHostMessage),
+    UNTRUSTED_HOST(R.string.sslErrorUntrustedMessage),
+    GENERIC(R.string.sslErrorUntrustedMessage),
+    NONE(R.string.sslErrorUntrustedMessage),
 }

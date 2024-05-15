@@ -56,12 +56,18 @@
 
     <string name="credentialManagementSuggestionsLabel">Suggested</string>
 
+    <string name="credentialManagementWebViewIncompatibleErrorMessage">Autofill for passwords is unavailable because your version of Android WebView is too old.</string>
+
     <string name="autofillManagementSearchClearDescription">Clear search input</string>
     <string name="autofillManagementNoSearchResults" instruction="Placeholder is the query the user has searched for. e.g., No results for 'kittens'">No results for \'%1$s\'</string>
 
     <string name="autofillDeleteLoginDialogCancel">Cancel</string>
     <string name="autofillDeleteLoginDialogDelete">Delete</string>
 
+    <!-- Autofill Management Survey Prompt, shown only to English locale so marked as not translatable -->
+    <string name="autofillManagementSurveyPromptTitle" translatable="false">Help us improve!</string>
+    <string name="autofillManagementSurveyPromptMessage" translatable="false">We want to make using passwords in DuckDuckGo better.</string>
+    <string name="autofillManagementSurveyPromptAcceptButtonText" translatable="false">Take Survey</string>
 
     <string name="autofillManagementUsernameCopied">Username copied</string>
     <string name="autofillManagementPasswordCopied">Password copied</string>
@@ -158,5 +164,12 @@
 
     <string name="autofill_auth_text_for_delete_all">Authenticate to confirm you want to delete all passwords</string>
     <string name="autofill_title_text_for_delete_all">Delete All Passwords</string>
+
+    <!-- Sync settings screen -->
+    <plurals name="syncCredentialInvalidItemsWarning" instruction="%1$ represents a site name or url, %2$d is the number of other invalid sites">
+        <item quantity="one">Your password for %1$s can’t sync because one of its fields exceeds the character limit.\n\n</item>
+        <item quantity="other">Your passwords for %1$s and %2$d other sites can’t sync because some of their fields exceed the character limit.\n\n</item>
+    </plurals>
+    <string name="syncCredentialInvalidItemsWarningLink"><annotation type="manage_passwords">Manage Passwords</annotation></string>
 
 </resources>

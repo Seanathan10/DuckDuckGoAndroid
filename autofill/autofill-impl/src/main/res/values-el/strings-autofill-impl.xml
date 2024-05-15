@@ -56,6 +56,8 @@
 
     <string name="credentialManagementSuggestionsLabel">Προτεινόμενο</string>
 
+    <string name="credentialManagementWebViewIncompatibleErrorMessage">Η αυτόματη συμπλήρωση κωδικών πρόσβασης δεν είναι διαθέσιμη καθώς η έκδοση του Android WebView είναι πολύ παλιά.</string>
+
     <string name="autofillManagementSearchClearDescription">Εκκαθάριση εισαγωγής αναζήτησης</string>
     <string name="autofillManagementNoSearchResults" instruction="Placeholder is the query the user has searched for. e.g., No results for &apos;kittens&apos;">Δεν υπάρχουν αποτελέσματα για «%1$s»</string>
 
@@ -159,5 +161,12 @@
 
     <string name="autofill_auth_text_for_delete_all">Επαληθεύστε την ταυτότητά σας για να επιβεβαιώσετε ότι θέλετε να διαγράψετε όλους τους κωδικούς πρόσβασης</string>
     <string name="autofill_title_text_for_delete_all">Διαγραφή όλων των κωδικών πρόσβασης</string>
+
+    <!-- Sync settings screen -->
+    <plurals name="syncCredentialInvalidItemsWarning" instruction="%1$ represents a site name or url, %2$d is the number of other invalid sites">
+        <item quantity="one">Ο κωδικός πρόσβασής σας για τον %1$s δεν μπορεί να συγχρονιστεί επειδή ορισμένα από τα πεδία του υπερβαίνουν το όριο χαρακτήρων.</item>
+        <item quantity="other">Οι κωδικοί πρόσβασής σας για τον %1$s και %2$d ακόμα ιστότοπους δεν μπορούν να συγχρονιστούν επειδή ορισμένα από τα πεδία τους υπερβαίνουν το όριο χαρακτήρων.</item>
+    </plurals>
+    <string name="syncCredentialInvalidItemsWarningLink"><annotation type="manage_passwords">Διαχείριση κωδικών πρόσβασης</annotation></string>
 
 </resources>

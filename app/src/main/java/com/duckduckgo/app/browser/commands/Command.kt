@@ -22,17 +22,20 @@ import android.os.Message
 import android.print.PrintAttributes.MediaSize
 import android.view.View
 import android.webkit.PermissionRequest
+import android.webkit.SslErrorHandler
 import android.webkit.ValueCallback
 import com.duckduckgo.app.browser.BrowserTabViewModel.FileChooserRequestedParams
 import com.duckduckgo.app.browser.BrowserTabViewModel.LocationPermission
-import com.duckduckgo.app.browser.BrowserTabViewModel.SavedSiteChangedViewState
 import com.duckduckgo.app.browser.SpecialUrlDetector.UrlType.AppLink
 import com.duckduckgo.app.browser.SpecialUrlDetector.UrlType.NonHttpAppLink
+import com.duckduckgo.app.browser.SslErrorResponse
 import com.duckduckgo.app.browser.WebViewErrorResponse
 import com.duckduckgo.app.browser.history.NavigationHistoryEntry
 import com.duckduckgo.app.browser.model.BasicAuthenticationCredentials
 import com.duckduckgo.app.browser.model.BasicAuthenticationRequest
+import com.duckduckgo.app.browser.viewstate.SavedSiteChangedViewState
 import com.duckduckgo.app.cta.ui.Cta
+import com.duckduckgo.app.cta.ui.ExperimentOnboardingDaxDialogCta
 import com.duckduckgo.app.fire.fireproofwebsite.data.FireproofWebsiteEntity
 import com.duckduckgo.app.survey.model.Survey
 import com.duckduckgo.autofill.api.domain.app.LoginCredentials
@@ -55,6 +58,7 @@ sealed class Command {
     class OpenInNewBackgroundTab(val query: String) : Command()
     object LaunchNewTab : Command()
     object ResetHistory : Command()
+    class LaunchPrivacyPro(val uri: Uri) : Command()
     class DialNumber(val telephoneNumber: String) : Command()
     class SendSms(val telephoneNumber: String) : Command()
     class SendEmail(val emailAddress: String) : Command()
@@ -151,6 +155,10 @@ sealed class Command {
     object LaunchTabSwitcher : Command()
     object HideWebContent : Command()
     object ShowWebContent : Command()
+    class ShowWebPageTitle(
+        val title: String,
+        val url: String?,
+    ) : Command()
     class CheckSystemLocationPermission(
         val domain: String,
         val deniedForever: Boolean,
@@ -224,4 +232,11 @@ sealed class Command {
     object ScreenUnlock : Command()
     data object ShowFaviconsPrompt : Command()
     data class SetBrowserBackground(val backgroundRes: Int) : Command()
+    data class ShowSSLError(val handler: SslErrorHandler, val error: SslErrorResponse) : Command()
+    data object HideSSLError : Command()
+    class LaunchScreen(
+        val screen: String,
+        val payload: String,
+    ) : Command()
+    data class HideExperimentOnboardingDialog(val experimentCta: ExperimentOnboardingDaxDialogCta) : Command()
 }

@@ -45,9 +45,11 @@ import com.google.android.material.snackbar.BaseTransientBottomBar.BaseCallback
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.snackbar.Snackbar.SnackbarLayout
 import com.squareup.anvil.annotations.ContributesBinding
+import java.lang.IllegalStateException
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @ContributesBinding(FragmentScope::class)
 class SitePermissionsDialogActivityLauncher @Inject constructor(
@@ -280,7 +282,12 @@ class SitePermissionsDialogActivityLauncher @Inject constructor(
 
     private fun grantPermissions() {
         val permissions = permissionsHandledAutomatically.toTypedArray() + permissionsHandledByUser
-        sitePermissionRequest.grant(permissions)
+        try {
+            sitePermissionRequest.grant(permissions)
+        } catch (e: IllegalStateException) {
+            // IllegalStateException is thrown when grant() or deny() have been called already.
+            Timber.w("IllegalStateException when calling grant() site permissions")
+        }
     }
 
     private fun systemPermissionGranted() {
@@ -349,10 +356,15 @@ class SitePermissionsDialogActivityLauncher @Inject constructor(
     }
 
     private fun denyPermissions() {
-        if (permissionsHandledAutomatically.isNotEmpty()) {
-            sitePermissionRequest.grant(permissionsHandledAutomatically.toTypedArray())
-        } else {
-            sitePermissionRequest.deny()
+        try {
+            if (permissionsHandledAutomatically.isNotEmpty()) {
+                sitePermissionRequest.grant(permissionsHandledAutomatically.toTypedArray())
+            } else {
+                sitePermissionRequest.deny()
+            }
+        } catch (e: IllegalStateException) {
+            // IllegalStateException is thrown when grant() or deny() have been called already.
+            Timber.w("IllegalStateException when calling grant() or deny() site permissions")
         }
     }
 

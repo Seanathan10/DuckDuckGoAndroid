@@ -225,6 +225,7 @@ dependencies {
     implementation project(':remote-messaging-api')
     implementation project(':remote-messaging-impl')
     implementation project(':remote-messaging-store')
+    internalImplementation project(":remote-messaging-internal")
 
     implementation project(':voice-search-api')
     implementation project(':voice-search-impl')
@@ -306,6 +307,7 @@ dependencies {
 
     implementation project(':user-agent-api')
     implementation project(':user-agent-impl')
+    implementation project(':user-agent-store')
 
     implementation project(':js-messaging-api')
     implementation project(':js-messaging-impl')
@@ -403,6 +405,8 @@ dependencies {
     // HTML
     implementation 'org.jsoup:jsoup:_'
 
+    // Browser
+    implementation "androidx.browser:browser:_"
 
     // Flipper
     internalImplementation "com.facebook.flipper:flipper:_"
@@ -477,12 +481,20 @@ tasks.register('androidTestsBuild') {
 
 tasks.register('releaseTestLocal', Exec) {
     commandLine 'maestro', 'test', '--include-tags', 'releaseTest', '../.maestro'
-    dependsOn 'installPlayRelease'
+    dependsOn 'installPlayReleaseDefaultVariant'
 }
 
 tasks.register('releaseTestCloud', Exec) {
     commandLine 'maestro', 'cloud', '--include-tags', 'releaseTest', "build/outputs/apk/play/release/duckduckgo-${buildVersionName()}-play-release.apk", '../.maestro'
-    dependsOn 'assemblePlayRelease'
+    dependsOn 'assemblePlayReleaseDefaultVariant'
+}
+
+tasks.register('installPlayReleaseDefaultVariant', Exec) {
+    commandLine "$rootDir/gradlew", ':app:installPlayRelease', "-Pforce-default-variant"
+}
+
+tasks.register('assemblePlayReleaseDefaultVariant', Exec) {
+    commandLine "$rootDir/gradlew", ':app:assemblePlayRelease', "-Pforce-default-variant"
 }
 
 task newModule(type: com.duckduckgo.gradle.ModuleCreator) {
